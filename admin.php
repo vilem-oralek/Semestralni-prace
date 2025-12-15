@@ -2,31 +2,32 @@
 session_start();
 include 'conn.php';
 
-// 1. ZABEZPEČENÍ: Pouze admin má přístup
+// ZABEZPEČENÍ
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.html");
     exit;
 }
 
-// 2. ZPRACOVÁNÍ AKCÍ (Mazání, Změna role)
+// ZPRACOVÁNÍ AKCÍ (Mazání, Změna role)
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $action_id = intval($_GET['id']);
     
-    // Ochrana: Admin nemůže smazat sám sebe
+    // Ochrana: Admin nemůže smazat/upravit roli sám sobě
     if ($action_id == $_SESSION['user_id']) {
-        echo "<script>alert('Nemůžete smazat nebo změnit vlastní účet!'); window.location.href='admin.php';</script>";
+        echo "<script>alert('Nemůžete smazat nebo změnit roli u vlastního účtu!'); window.location.href='admin.php';</script>";
         exit;
     }
 
+    // 1. Smazání uživatele
     if ($_GET['action'] == 'delete') {
         $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
         $stmt->bind_param("i", $action_id);
         $stmt->execute();
-        header("Location: admin.php?msg=deleted");
+        header("Location: admin.php?tab=users&msg=deleted");
         exit;
     } 
+    // 2. Změna role (User <-> Admin)
     elseif ($_GET['action'] == 'toggle_role') {
-        // Zjistíme aktuální roli
         $stmt = $conn->prepare("SELECT role FROM users WHERE id = ?");
         $stmt->bind_param("i", $action_id);
         $stmt->execute();
@@ -34,35 +35,78 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         if ($res->num_rows > 0) {
             $curr_user = $res->fetch_assoc();
             $new_role = ($curr_user['role'] == 'admin') ? 'user' : 'admin';
-            
             $update = $conn->prepare("UPDATE users SET role = ? WHERE id = ?");
             $update->bind_param("si", $new_role, $action_id);
             $update->execute();
         }
-        header("Location: admin.php?msg=role_changed");
+        header("Location: admin.php?tab=users&msg=role_changed");
         exit;
     }
 }
 
-// 3. STRÁNKOVÁNÍ (Pagination)
-$limit = 10; // Počet uživatelů na stránku
+$msg = "";
+if(isset($_GET['msg'])) {
+    if($_GET['msg'] == 'deleted') $msg = "Uživatel byl smazán.";
+    if($_GET['msg'] == 'role_changed') $msg = "Role uživatele byla změněna.";
+}
+
+if (isset($_POST['update_base_price'])) {
+    $new_price = floatval($_POST['base_price']);
+    $conn->query("UPDATE base_price SET cena_za_noc = $new_price");
+    $msg = "Základní cena aktualizována.";
+}
+
+if (isset($_POST['add_season'])) {
+    $nazev = $_POST['nazev'];
+    $od = $_POST['datum_od'];
+    $do = $_POST['datum_do'];
+    $cena = $_POST['cena'];
+    $stmt = $conn->prepare("INSERT INTO season_prices (nazev, datum_od, datum_do, cena_za_noc) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("sssd", $nazev, $od, $do, $cena);
+    $stmt->execute();
+    $msg = "Sezóna přidána.";
+}
+
+if (isset($_GET['delete_season'])) {
+    $id = intval($_GET['delete_season']);
+    $conn->query("DELETE FROM season_prices WHERE id = $id");
+    header("Location: admin.php?tab=ceny");
+    exit;
+}
+
+if (isset($_GET['delete_res'])) {
+    $id = intval($_GET['delete_res']);
+    $conn->query("DELETE FROM reservations WHERE id = $id");
+    header("Location: admin.php?tab=rezervace");
+    exit;
+}
+
+// ---------------------------------------------------------
+// LOGIKA STRÁNKOVÁNÍ (Pagination)
+// ---------------------------------------------------------
+$limit = 10; // Max uživatelů na stránku
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
 
 // Získání celkového počtu uživatelů
-$count_result = $conn->query("SELECT COUNT(*) as total FROM users");
-$count_row = $count_result->fetch_assoc();
-$total_users = $count_row['total'];
+$count_res = $conn->query("SELECT COUNT(*) as total FROM users");
+$total_users = $count_res->fetch_assoc()['total'];
 $total_pages = ceil($total_users / $limit);
 
-// Získání uživatelů pro aktuální stránku
-$sql = "SELECT id, jmeno, prijmeni, email, telefon, role, created_at FROM users ORDER BY id DESC LIMIT ? OFFSET ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $limit, $offset);
-$stmt->execute();
-$users_result = $stmt->get_result();
+// NAČTENÍ DAT
+// Uživatelé (S LIMITEM)
+$stmt_users = $conn->prepare("SELECT * FROM users LIMIT ? OFFSET ?");
+$stmt_users->bind_param("ii", $limit, $offset);
+$stmt_users->execute();
+$users_res = $stmt_users->get_result();
 
+// Rezervace
+$reservations_res = $conn->query("SELECT r.*, u.email as user_email FROM reservations r JOIN users u ON r.user_id = u.id ORDER BY r.datum_prijezdu ASC");
+$base_price_row = $conn->query("SELECT cena_za_noc FROM base_price LIMIT 1");
+$base_price_val = ($base_price_row && $base_price_row->num_rows > 0) ? $base_price_row->fetch_assoc()['cena_za_noc'] : 0;
+$seasons_res = $conn->query("SELECT * FROM season_prices ORDER BY datum_od ASC");
+$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
 ?>
 <!DOCTYPE html>
 <html lang="cs">
@@ -72,59 +116,71 @@ $users_result = $stmt->get_result();
     <title>Admin Panel</title>
     <link rel="stylesheet" href="style.css">
     <script>
-      fetch("header.php")
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById("header-placeholder").innerHTML = data;
-        });
+      fetch("header.php").then(r => r.text()).then(d => document.getElementById("header-placeholder").innerHTML = d);
     </script>
+    <style>
+        .msg-box { background: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border-radius: 5px; text-align: center; }
+        .price-settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; text-align: left; }
+        .price-box { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        @media(max-width: 800px) { .price-settings-grid { grid-template-columns: 1fr; } }
+        
+        /* Styl pro stránkování */
+        .pagination { margin-top: 20px; text-align: center; }
+        .pagination a {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 0 4px;
+            background-color: #ddd;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .pagination a.active {
+            background-color: #004b87;
+            color: white;
+        }
+        .pagination a:hover:not(.active) {
+            background-color: #ccc;
+        }
+    </style>
 </head>
 <body>
     <div id="header-placeholder"></div>
 
-    <section class="admin-hero">
-        <div class="background-image"></div>
+    <div class="background-image"></div>
+
+    <section class="admin-hero" style="position: relative; z-index: 1; padding-top: 100px; padding-bottom: 50px; min-height: 100vh; display: flex; justify-content: center;">
         
-        <main id="admin-container">
-            <h1 class="admin-title">Admin Panel</h1>
+        <main id="admin-container" style="background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 10px; width: 90%; max-width: 1200px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <h1 class="admin-title" style="text-align: center; color: #333;">Admin Panel</h1>
+
+            <?php if($msg): ?><div class="msg-box"><?php echo $msg; ?></div><?php endif; ?>
 
             <div class="admin-tabs">
-                <button class="tab-button active" onclick="openTab('users-tab')">Správa Uživatelů</button>
-                <button class="tab-button" onclick="openTab('reservations-tab')">Správa Rezervací</button>
+                <button class="tab-button <?php echo $active_tab=='users'?'active':''; ?>" onclick="openTab('users-tab')">Uživatelé</button>
+                <button class="tab-button <?php echo $active_tab=='rezervace'?'active':''; ?>" onclick="openTab('reservations-tab')">Rezervace</button>
+                <button class="tab-button <?php echo $active_tab=='ceny'?'active':''; ?>" onclick="openTab('prices-tab')">Ceník</button>
             </div>
 
-            <div id="users-tab" class="tab-content" style="display: block;">
+            <div id="users-tab" class="tab-content" style="display: <?php echo $active_tab=='users'?'block':'none'; ?>;">
                 <h2>Seznam uživatelů</h2>
                 <div class="table-responsive">
                     <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Jméno</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Akce</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Jméno</th><th>Email</th><th>Role</th><th>Akce</th></tr></thead>
                         <tbody>
-                            <?php while($row = $users_result->fetch_assoc()): ?>
+                            <?php while($u = $users_res->fetch_assoc()): ?>
                             <tr>
-                                <td><?php echo $row['id']; ?></td>
-                                <td><?php echo htmlspecialchars($row['jmeno'] . ' ' . $row['prijmeni']); ?></td>
-                                <td><?php echo htmlspecialchars($row['email']); ?></td>
-                                <td>
-                                    <span class="badge <?php echo $row['role'] == 'admin' ? 'badge-admin' : 'badge-user'; ?>">
-                                        <?php echo $row['role']; ?>
-                                    </span>
-                                </td>
+                                <td><?php echo $u['id']; ?></td>
+                                <td><?php echo htmlspecialchars($u['jmeno'].' '.$u['prijmeni']); ?></td>
+                                <td><?php echo htmlspecialchars($u['email']); ?></td>
+                                <td><span class="badge <?php echo $u['role']=='admin'?'badge-admin':'badge-user'; ?>"><?php echo $u['role']; ?></span></td>
                                 <td class="actions-cell">
-                                    <a href="admin_edit_user.php?id=<?php echo $row['id']; ?>" class="btn-action btn-edit">Upravit</a>
-                                    
-                                    <a href="admin.php?action=toggle_role&id=<?php echo $row['id']; ?>" class="btn-action btn-role">
-                                        <?php echo $row['role'] == 'admin' ? '⬇ User' : '⬆ Admin'; ?>
+                                    <a href="admin_edit_user.php?id=<?php echo $u['id']; ?>" class="btn-action btn-edit">Upravit</a>
+                                    <a href="admin.php?action=toggle_role&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-role">
+                                        <?php echo $u['role'] == 'admin' ? '⬇ User' : '⬆ Admin'; ?>
                                     </a>
-
-                                    <a href="admin.php?action=delete&id=<?php echo $row['id']; ?>" class="btn-action btn-delete" onclick="return confirm('Opravdu smazat tohoto uživatele?');">Smazat</a>
+                                    <a href="admin.php?action=delete&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-delete" onclick="return confirm('Opravdu smazat tohoto uživatele?');">Smazat</a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
@@ -134,47 +190,101 @@ $users_result = $stmt->get_result();
 
                 <div class="pagination">
                     <?php if($page > 1): ?>
-                        <a href="admin.php?page=<?php echo $page-1; ?>" class="pagination-button">Předchozí</a>
+                        <a href="admin.php?tab=users&page=<?php echo $page-1; ?>">&laquo; Předchozí</a>
                     <?php endif; ?>
 
                     <?php for($i=1; $i<=$total_pages; $i++): ?>
-                        <a href="admin.php?page=<?php echo $i; ?>" class="pagination-button <?php echo ($i == $page) ? 'active' : ''; ?>"><?php echo $i; ?></a>
+                        <a href="admin.php?tab=users&page=<?php echo $i; ?>" class="<?php echo ($i == $page) ? 'active' : ''; ?>"><?php echo $i; ?></a>
                     <?php endfor; ?>
 
                     <?php if($page < $total_pages): ?>
-                        <a href="admin.php?page=<?php echo $page+1; ?>" class="pagination-button">Další</a>
+                        <a href="admin.php?tab=users&page=<?php echo $page+1; ?>">Další &raquo;</a>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <div id="reservations-tab" class="tab-content" style="display: none;">
-                <h2>Seznam rezervací</h2>
-                <p>Zde bude brzy seznam všech rezervací.</p>
+            <div id="reservations-tab" class="tab-content" style="display: <?php echo $active_tab=='rezervace'?'block':'none'; ?>;">
+                <h2>Všechny Rezervace</h2>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead><tr><th>ID</th><th>Host</th><th>Kontakt</th><th>Od - Do</th><th>Cena</th><th>Poznámka</th><th>Akce</th></tr></thead>
+                        <tbody>
+                            <?php while($r = $reservations_res->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo $r['id']; ?></td>
+                                <td>
+                                    <?php echo htmlspecialchars($r['jmeno'].' '.$r['prijmeni']); ?>
+                                </td>
+                                <td>
+                                    <?php echo htmlspecialchars($r['email']); ?><br>
+                                    <small><?php echo htmlspecialchars($r['telefon']); ?></small>
+                                </td>
+                                <td><?php echo date('d.m.Y', strtotime($r['datum_prijezdu'])).' - '.date('d.m.Y', strtotime($r['datum_odjezdu'])); ?></td>
+                                <td><strong><?php echo number_format($r['celkova_cena'], 0, ',', ' '); ?> Kč</strong></td>
+                                <td><?php echo htmlspecialchars($r['poznamka']); ?></td>
+                                <td>
+                                    <a href="admin.php?delete_res=<?php echo $r['id']; ?>&tab=rezervace" class="btn-action btn-delete" onclick="return confirm('Smazat rezervaci?');">Storno</a>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="prices-tab" class="tab-content" style="display: <?php echo $active_tab=='ceny'?'block':'none'; ?>;">
+                <h2>Nastavení Cen</h2>
+                <div class="price-settings-grid">
+                    <div class="price-box">
+                        <h3>Základní cena (mimo sezónu)</h3>
+                        <form method="post" action="admin.php?tab=ceny">
+                            <div class="form-group-edit">
+                                <label>Cena za noc (Kč):</label>
+                                <input type="number" name="base_price" value="<?php echo $base_price_val; ?>" required style="width: 100%; padding: 8px;">
+                            </div>
+                            <button type="submit" name="update_base_price" class="save-profile-button" style="margin-top: 10px;">Uložit základní cenu</button>
+                        </form>
+                    </div>
+                    <div class="price-box">
+                        <h3>Přidat sezónní cenu</h3>
+                        <form method="post" action="admin.php?tab=ceny">
+                            <div class="form-group-edit"><label>Název:</label><input type="text" name="nazev" required style="width: 100%; padding: 8px;"></div>
+                            <div class="form-group-edit"><label>Od:</label><input type="date" name="datum_od" required style="width: 100%; padding: 8px;"></div>
+                            <div class="form-group-edit"><label>Do:</label><input type="date" name="datum_do" required style="width: 100%; padding: 8px;"></div>
+                            <div class="form-group-edit"><label>Cena za noc (Kč):</label><input type="number" name="cena" required style="width: 100%; padding: 8px;"></div>
+                            <button type="submit" name="add_season" class="edit-profile-button" style="margin-top: 10px;">Přidat sezónu</button>
+                        </form>
+                    </div>
+                </div>
+                <h3 style="margin-top: 30px;">Aktivní sezóny</h3>
+                <table class="admin-table">
+                    <thead><tr><th>Název</th><th>Termín</th><th>Cena/noc</th><th>Akce</th></tr></thead>
+                    <tbody>
+                        <?php while($s = $seasons_res->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($s['nazev']); ?></td>
+                            <td><?php echo date('d.m.Y', strtotime($s['datum_od'])).' - '.date('d.m.Y', strtotime($s['datum_do'])); ?></td>
+                            <td><?php echo number_format($s['cena_za_noc'], 0, ',', ' '); ?> Kč</td>
+                            <td><a href="admin.php?delete_season=<?php echo $s['id']; ?>&tab=ceny" class="btn-action btn-delete">Smazat</a></td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
             </div>
 
         </main>
     </section>
 
-    <footer>
-        <p>&copy; 2023 Vilémův strejda. Admin Sekce.</p>
-    </footer>
+    <footer><p>&copy; 2023 Vilémův strejda. Admin Sekce.</p></footer>
 
     <script>
         function openTab(tabName) {
-            // Skrýt všechny taby
             var contents = document.getElementsByClassName("tab-content");
-            for (var i = 0; i < contents.length; i++) {
-                contents[i].style.display = "none";
-            }
-            // Zrušit active u tlačítek
+            for (var i = 0; i < contents.length; i++) { contents[i].style.display = "none"; }
             var buttons = document.getElementsByClassName("tab-button");
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove("active");
-            }
-            // Zobrazit vybraný
+            for (var i = 0; i < buttons.length; i++) { buttons[i].classList.remove("active"); }
             document.getElementById(tabName).style.display = "block";
-            // Přidat active na kliknuté tlačítko
-            event.currentTarget.classList.add("active");
+            if(event && event.currentTarget) event.currentTarget.classList.add("active");
         }
     </script>
 </body>

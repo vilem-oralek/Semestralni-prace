@@ -536,17 +536,9 @@ html, body{
 /* ********************************************************************************************* */
 /* ********************************** REZERVACE ********************* */
 /* ********************************************************************************************* */
-
-#rezervace {
-  width: 100%;
-  max-width: 800px;
-  margin: 40px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+/* ********************************************************************************************* */
+/* ********************************** REZERVACE - FIXED **************************************** */
+/* ********************************************************************************************* */
 
 .reservation-hero {
   display: flex;
@@ -555,32 +547,38 @@ html, body{
   align-items: center;
   text-align: center;
   color: white;
-  height: fit-content; 
+  min-height: 100vh; /* Aby to zabralo celou výšku */
   padding: 20px;
   position: relative;
+  padding-top: 100px; /* Místo pro header */
 }
+
+/* Tvoje definice kontejneru */
 #rezervace {
   width: 100%;
   max-width: 800px;
-  margin: 40px;
-  padding: 20px;
-  background-color: #f9f9f9;
+  margin: 40px auto; /* Auto vycentruje */
+  padding: 30px;
+  background-color: #f9f9f9; /* Šedé pozadí - text bude čitelný */
+  border: 1px solid #ddd;
   border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative; 
   z-index: 2; 
 }
 
-.popis {
-  text-align: center;
-  color: white;
-  font-size: large;
-}
-
 #rezervace h2 {
   text-align: center;
-  color: black;
-  margin-bottom: 10px ;
+  color: #333;
+  margin-bottom: 20px;
   font-size: 2.5rem;
+}
+
+.popis-text {
+    text-align: center;
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
 }
 
 #rezervacni-formular {
@@ -590,9 +588,17 @@ html, body{
   gap: 15px;
 }
 
+/* Layout pro dva sloupce */
+.form-row {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
+  flex: 1; /* Aby se roztáhly stejně */
 }
 
 .form-group label {
@@ -602,13 +608,14 @@ html, body{
 }
 
 .form-group input,
-.form-group textarea,
-.form-group button {
+.form-group textarea {
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
   outline: none;
+  width: 100%; /* Fix pro inputy */
+  box-sizing: border-box; /* Aby padding nerozhodil šířku */
 }
 
 .form-group input:focus,
@@ -627,24 +634,80 @@ button[type="submit"] {
   color: white;
   font-weight: 600;
   border: none;
+  padding: 12px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-size: 1.1rem;
+  margin-top: 10px;
 }
-
 
 button[type="submit"]:hover {
   background-color: #00325e;
+}
+
+button[type="submit"]:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Cena a errory */
+.price-result-box {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    color: #333; /* Černý text */
+    display: none;
+    margin-top: 15px;
+}
+
+.price-result-box.active {
+    display: block;
+}
+
+.error-msg {
+    color: #d9534f;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+    margin-top: 10px;
+}
+
+.error-msg.active {
+    display: block;
 }
 
 /* Responsivita */
 @media (max-width: 600px) {
   #rezervace {
     padding: 15px;
+    margin: 20px 10px;
   }
+  .form-row {
+      flex-direction: column;
+      gap: 15px;
+  }
+}
 
-  button[type="submit"] {
-    font-size: 0.9rem;
-  }
+/* Styly pro odkaz na přihlášení */
+.not-logged-wrapper {
+    text-align: center;
+    padding: 20px;
+}
+.not-logged-text {
+    color: #333;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+.btn-link {
+    text-decoration: none;
+    background-color: #333;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 5px;
 }
 /* ********************************************************************************************* */
 /* ********************************** Login page *********************************************** */
@@ -1297,3 +1360,4 @@ button[type="submit"]:hover {
     background-color: #00325e;
     font-weight: bold;
 }
+

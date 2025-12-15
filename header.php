@@ -46,7 +46,7 @@ if ($is_logged_in) {
         <nav class="nav-menu" id="navMenu">
           <ul>
             <li><a href="galerie.html">Galerie</a></li>
-            <li><a href="rezervace.html">Rezervace</a></li>
+            <li><a href="rezervace.php">Rezervace</a></li>
             
             <?php if ($is_admin): ?>
                 <li><a href="admin.php" style="color: #ffcccc; font-weight: bold;">Admin Panel</a></li>

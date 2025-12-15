@@ -114,7 +114,28 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
       <section class="profile-reservations">
         <h2>Moje rezervace</h2>
         <ul id="reservations-list">
-          <li>Žádné rezervace k zobrazení.</li>
+          <?php
+             // Načtení rezervací uživatele
+             $res_stmt = $conn->prepare("SELECT * FROM reservations WHERE user_id = ? ORDER BY datum_prijezdu DESC");
+             $res_stmt->bind_param("i", $user_id);
+             $res_stmt->execute();
+             $my_reservations = $res_stmt->get_result();
+
+             if ($my_reservations->num_rows > 0):
+                 while($r = $my_reservations->fetch_assoc()):
+          ?>
+            <li>
+                <strong><?php echo date('d.m.Y', strtotime($r['datum_prijezdu'])); ?> - <?php echo date('d.m.Y', strtotime($r['datum_odjezdu'])); ?></strong>
+                <br>
+                Cena: <?php echo number_format($r['celkova_cena'], 0, ',', ' '); ?> Kč
+                <?php if(!empty($r['poznamka'])): ?><br><i>Pozn: <?php echo htmlspecialchars($r['poznamka']); ?></i><?php endif; ?>
+            </li>
+          <?php 
+                 endwhile; 
+             else:
+          ?>
+            <li>Nemáte zatím žádné rezervace.</li>
+          <?php endif; ?>
         </ul>
       </section>
     </main>
