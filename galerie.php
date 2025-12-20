@@ -15,8 +15,9 @@ if (is_dir($dir)) {
 }
 
 // LOGIKA STRÁNKOVÁNÍ
+// Necháme 8, to je dobré číslo (na desktopu 2 řádky po 4, na tabletu 4 řádky po 2)
 $total_files = count($files);
-$per_page = 8; // Počet obrázků na jednu stránku
+$per_page = 8; 
 $total_pages = ceil($total_files / $per_page);
 
 // Zjištění aktuální stránky
@@ -24,12 +25,11 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 if ($page > $total_pages && $total_pages > 0) $page = $total_pages;
 
-// Výpočet offsetu (odkud začít řezat pole)
+// Výpočet offsetu
 $offset = ($page - 1) * $per_page;
 
-// Získání obrázků pouze pro aktuální stránku
+// Získání obrázků pro aktuální stránku
 $files_on_page = array_slice($files, $offset, $per_page);
-
 ?>
 <!DOCTYPE html>
 <html lang="cs">
