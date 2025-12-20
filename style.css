@@ -618,15 +618,16 @@ footer {
   flex-direction: column;
   text-align: center;
   color: white;
-  min-height: 100vh;
+  min-height: 115vh;
   position: relative;
 }
 
 /* Tvoje definice kontejneru */
 #rezervace {
-  width: 100%;
-  max-width: 800px;
+  width: 800px;
+  max-width: 80vw;
   padding: 30px;
+  margin-top: 50px;
   background-color: #f9f9f9; /* Šedé pozadí - text bude čitelný */
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -635,13 +636,13 @@ footer {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2; 
 }
 
 #rezervace h2 {
   text-align: center;
   color: #333;
   margin-bottom: 20px;
+  margin-top: 0;
   font-size: 2.5rem;
 }
 
@@ -656,7 +657,7 @@ footer {
   display: flex;
   flex-direction: column;
   text-align: left;
-  gap: 15px;
+  gap: 10px;
 }
 
 /* Layout pro dva sloupce */
@@ -766,6 +767,9 @@ button[type="submit"]:disabled {
   .form-row {
       flex-direction: column;
       gap: 15px;
+  }
+  .reservation-hero {
+    min-height: 140vh;
   }
 }
 
@@ -1111,11 +1115,9 @@ button[type="submit"]:disabled {
   color: white;
   flex: 1 0 auto; 
   width: 100%;
-  padding: 20px;
-  padding-top: 50px;
-  padding-bottom: 50px; 
   position: relative;
   box-sizing: border-box;
+  min-height: 150vh;
 }
 
 .profile-title {
@@ -1126,11 +1128,14 @@ button[type="submit"]:disabled {
 }
 
 #profile-container {
-  width: 90%;
-  max-width: 900px; 
-  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80vw;
+  width: 900px; 
+  margin-top: 20px;
   background: rgba(255, 255, 255, 0.9); 
-  padding: 40px; 
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -1331,23 +1336,86 @@ button[type="submit"]:disabled {
 /* ********************************** ADMIN PANEL CSS ****************************************** */
 /* ********************************************************************************************* */
 
+.msg-box { 
+  background: #d4edda;
+  color: #155724;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  text-align: center;
+}
+.price-settings-grid { 
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  text-align: left; 
+}
+.price-box {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+@media(max-width: 800px) {
+}
+        
+/* Styl pro stránkování */
+.pagination {
+  text-align: center; 
+}
+.pagination a {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 4px;
+    background-color: #ddd;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.pagination a.active {
+    background-color: #004b87;
+    color: white;
+}
+.pagination a:hover:not(.active) {
+    background-color: #ccc;
+}
+@media(max-width: 720px) {
+  .price-settings-grid{
+    display: flex;
+    flex-direction: column;
+  }
+  #admin-price-table{
+    max-width: 90vw;
+    min-width: none;
+  }
+}
+
 .admin-hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: 120px 20px 50px 20px;
+  height: 100vh;
+  margin-top: 10px;
   width: 100%;
   flex: 1 0 auto;
+  padding: 0%;
 }
 
 #admin-container {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 90vw;
-  max-width: 1200px; /* Širší než profil, aby se vešla tabulka */
   background: rgba(255, 255, 255, 0.95);
   padding: 30px;
+  padding-top: 0px;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  height: fit-content;
+  max-height: 78vh;
+  overflow-y: auto;
+  margin-top: 20px;
 }
 
 .admin-title {
@@ -1390,16 +1458,22 @@ button[type="submit"]:disabled {
   overflow-x: auto;
 }
 
+#admin-user-table{
+  min-width: 730px;
+}
+#admin-reservation-table{
+  min-width: 770px;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  min-width: 600px; /* Aby se na mobilu dalo scrollovat do boku */
 }
 
 .admin-table th, .admin-table td {
   padding: 12px 15px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #ddd;
 }
 
@@ -1417,6 +1491,9 @@ button[type="submit"]:disabled {
   display: flex;
   gap: 5px;
   flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
 .btn-action {

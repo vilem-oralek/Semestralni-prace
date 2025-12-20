@@ -30,7 +30,7 @@
                     <input type="text" id="last-name" name="last-name" class="form-inputa" placeholder="Zadejte své příjmení" required>
                 </div>
                 <div class="form-groupa">
-                    <label for="phone" class="form-labela">Telefonní číslo</label>
+                    <label for="phone" class="form-labela">Telefonní číslo (bez předvolby)</label>
                     <input type="tel" id="phone" name="phone" class="form-inputa" placeholder="Zadejte své telefonní číslo" pattern="[0-9]{9}" required>
                 </div>
                 <div class="form-groupa">
@@ -42,22 +42,207 @@
                     <input type="email" id="confirm-email" name="confirm-email" class="form-inputa" placeholder="Zadejte svůj e-mail znovu" required>
                 </div>
                 <div class="form-groupa">
-                    <label for="password" class="form-labela">Heslo</label>
+                    <label for="password" class="form-labela">Heslo (min. 8 znaků) </label>
                     <input type="password" id="password" name="password" class="form-inputa" placeholder="Zadejte své heslo" required>
                 </div>
                 <div class="form-groupa">
                     <label for="birthdate" class="form-labela">Datum narození</label>
                     <input type="date" id="birthdate" name="birthdate" class="form-inputa" required>
                 </div>
-                <button type="submit" class="registration-button">Registrovat se</button>
+                <button type="submit" name="sumbit" class="registration-button">Registrovat se</button>
             </form>
         </section>
         </section>
     </main>
-
     <footer>
         <p>&copy; 2023 Modrý Jelen Lipno. Všechna práva vyhrazena.</p>
     </footer>
     <script src="menu.js"></script>
+
+    <script type="text/javascript">
+        // Wait for the DOM to fully load before accessing elements
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get references to the form and input fields
+            const form = document.getElementById("registration-form");
+            const fname = document.getElementById("first-name");
+            const lname = document.getElementById("last-name");
+            const phone = document.getElementById("phone");
+            const email = document.getElementById("email");
+            const confirmEmail = document.getElementById("confirm-email");
+            const password = document.getElementById("password");
+            const birthdate = document.getElementById("birthdate");
+
+            // Set the max attribute of the birthdate input to today's date
+            const today = new Date().toISOString().split("T")[0];
+            birthdate.setAttribute("max", today);
+
+            // Function to calculate age from birthdate
+            function calculateAge(birthdateValue) {
+                const today = new Date();
+                const birthDate = new Date(birthdateValue);
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+
+                // Adjust age if the birthdate hasn't occurred yet this year
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+
+            // Real-time validation for first name
+            fname.addEventListener("blur", function () {
+                const fnameValue = fname.value.trim();
+                if (fnameValue.length < 3) {
+                    fname.style.border = "solid red 3px";
+                } else {
+                    fname.style.border = "solid black 1px";
+                }
+            });
+
+            // Real-time validation for last name
+            lname.addEventListener("blur", function () {
+                const lnameValue = lname.value.trim();
+                if (lnameValue.length < 3) {
+                    lname.style.border = "solid red 3px";
+                } else {
+                    lname.style.border = "solid black 1px";
+                }
+            });
+
+            // Real-time validation for phone number
+            phone.addEventListener("blur", function () {
+                const phoneValue = phone.value.trim();
+                if (!/^\d{9}$/.test(phoneValue)) {
+                    phone.style.border = "solid red 3px";
+                } else {
+                    phone.style.border = "solid black 1px";
+                }
+            });
+
+            // Real-time validation for email
+            email.addEventListener("blur", function () {
+                const emailValue = email.value.trim();
+                if (emailValue.length < 6 || !emailValue.includes("@")) {
+                    email.style.border = "solid red 3px";
+                } else {
+                    email.style.border = "solid black 1px";
+                }
+            });
+
+            // Real-time validation for confirm email
+            confirmEmail.addEventListener("blur", function () {
+                const emailValue = email.value.trim();
+                const confirmEmailValue = confirmEmail.value.trim();
+                if (confirmEmailValue !== emailValue) {
+                    confirmEmail.style.border = "solid red 3px";
+                } else {
+                    confirmEmail.style.border = "solid black 1px";
+                }
+            });
+
+            // Real-time validation for password
+            password.addEventListener("blur", function () {
+                const passwordValue = password.value.trim();
+                if (passwordValue.length < 8) {
+                    password.style.border = "solid red 3px";
+                } else {
+                    password.style.border = "solid black 1px";
+                }
+            });
+
+            // Validation for birthdate on change
+            birthdate.addEventListener("change", function () {
+                const birthdateValue = birthdate.value;
+                if (birthdateValue) {
+                    const age = calculateAge(birthdateValue);
+                    if (age < 18) {
+                        birthdate.style.border = "solid red 3px";
+                        alert("Musíte být starší 18 let.");
+                    } else {
+                        birthdate.style.border = "solid black 1px";
+                    }
+                } else {
+                    birthdate.style.border = "solid red 3px";
+                    alert("Zadejte prosím datum narození.");
+                }
+            });
+
+            // Add event listener for form submission
+            form.addEventListener("submit", function (event) {
+                const fnameValue = fname.value.trim();
+                const lnameValue = lname.value.trim();
+                const phoneValue = phone.value.trim();
+                const emailValue = email.value.trim();
+                const confirmEmailValue = confirmEmail.value.trim();
+                const passwordValue = password.value.trim();
+                const birthdateValue = birthdate.value;
+
+                // Validate first name length
+                if (fnameValue.length < 3) {
+                    alert("Jméno musí mít alespoň 3 znaky.");
+                    fname.style.border = "solid red 3px";
+                    event.preventDefault();
+                    return;
+                }
+
+                // Validate last name length
+                if (lnameValue.length < 3) {
+                    alert("Příjmení musí mít alespoň 3 znaky.");
+                    lname.style.border = "solid red 3px";
+                    event.preventDefault();
+                    return;
+                }
+
+                // Validate phone number
+                if (!/^\d{9}$/.test(phoneValue)) {
+                    alert("Telefonní číslo musí obsahovat přesně 9 číslic.");
+                    phone.style.border = "solid red 3px";
+                    event.preventDefault();
+                    return;
+                }
+
+                // Validate email
+                if (emailValue.length < 6 || !emailValue.includes("@")) {
+                    alert("E-mail musí mít alespoň 6 znaků a obsahovat '@'.");
+                    email.style.border = "solid red 3px";
+                    event.preventDefault();
+                    return;
+                }
+
+                // Validate confirm email
+                if (confirmEmailValue !== emailValue) {
+                    alert("E-maily se neshodují.");
+                    confirmEmail.style.border = "solid red 3px";
+                    event.preventDefault();
+                    return;
+                }
+
+                // Validate password
+                if (passwordValue.length < 8) {
+                    alert("Heslo musí mít alespoň 8 znaků.");
+                    password.style.border = "solid red 3px";
+                    event.preventDefault();
+                    return;
+                }
+
+                // Validate age
+                if (birthdateValue) {
+                    const age = calculateAge(birthdateValue);
+                    if (age < 18) {
+                        alert("Musíte být starší 18 let.");
+                        birthdate.style.border = "solid red 3px";
+                        event.preventDefault();
+                        return;
+                    }
+                } else {
+                    alert("Zadejte prosím datum narození.");
+                    birthdate.style.border = "solid red 3px";
+                    event.preventDefault();
+                    return;
+                }
+            });
+        });
+    </script>
 </body>
 </html>

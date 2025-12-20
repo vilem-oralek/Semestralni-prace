@@ -84,7 +84,7 @@ if (isset($_GET['delete_res'])) {
 // ---------------------------------------------------------
 // LOGIKA STRÁNKOVÁNÍ (Pagination)
 // ---------------------------------------------------------
-$limit = 10; // Max uživatelů na stránku
+$limit = 5; // Max uživatelů na stránku
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
@@ -118,42 +118,16 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
     <script>
       fetch("header.php").then(r => r.text()).then(d => document.getElementById("header-placeholder").innerHTML = d);
     </script>
-    <style>
-        .msg-box { background: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border-radius: 5px; text-align: center; }
-        .price-settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; text-align: left; }
-        .price-box { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
-        @media(max-width: 800px) { .price-settings-grid { grid-template-columns: 1fr; } }
-        
-        /* Styl pro stránkování */
-        .pagination { margin-top: 20px; text-align: center; }
-        .pagination a {
-            display: inline-block;
-            padding: 8px 12px;
-            margin: 0 4px;
-            background-color: #ddd;
-            color: #333;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .pagination a.active {
-            background-color: #004b87;
-            color: white;
-        }
-        .pagination a:hover:not(.active) {
-            background-color: #ccc;
-        }
-    </style>
 </head>
 <body>
     <div id="header-placeholder"></div>
 
     <div class="background-image"></div>
 
-    <section class="admin-hero" style="position: relative; z-index: 1; padding-top: 100px; padding-bottom: 50px; min-height: 100vh; display: flex; justify-content: center;">
+    <section class="admin-hero">
         
-        <main id="admin-container" style="background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 10px; width: 90%; max-width: 1200px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-            <h1 class="admin-title" style="text-align: center; color: #333;">Admin Panel</h1>
+        <main id="admin-container">
+            <h1 class="admin-title">Admin Panel</h1>
 
             <?php if($msg): ?><div class="msg-box"><?php echo $msg; ?></div><?php endif; ?>
 
@@ -166,7 +140,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
             <div id="users-tab" class="tab-content" style="display: <?php echo $active_tab=='users'?'block':'none'; ?>;">
                 <h2>Seznam uživatelů</h2>
                 <div class="table-responsive">
-                    <table class="admin-table">
+                    <table class="admin-table" id="admin-user-table">
                         <thead><tr><th>ID</th><th>Jméno</th><th>Email</th><th>Role</th><th>Akce</th></tr></thead>
                         <tbody>
                             <?php while($u = $users_res->fetch_assoc()): ?>
@@ -206,7 +180,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
             <div id="reservations-tab" class="tab-content" style="display: <?php echo $active_tab=='rezervace'?'block':'none'; ?>;">
                 <h2>Všechny Rezervace</h2>
                 <div class="table-responsive">
-                    <table class="admin-table">
+                    <table class="admin-table" id="admin-reservation-table">
                         <thead><tr><th>ID</th><th>Host</th><th>Kontakt</th><th>Od - Do</th><th>Cena</th><th>Poznámka</th><th>Akce</th></tr></thead>
                         <tbody>
                             <?php while($r = $reservations_res->fetch_assoc()): ?>
@@ -240,24 +214,24 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                         <form method="post" action="admin.php?tab=ceny">
                             <div class="form-group-edit">
                                 <label>Cena za noc (Kč):</label>
-                                <input type="number" name="base_price" value="<?php echo $base_price_val; ?>" required style="width: 100%; padding: 8px;">
+                                <input type="number" name="base_price" value="<?php echo $base_price_val; ?>" required>
                             </div>
-                            <button type="submit" name="update_base_price" class="save-profile-button" style="margin-top: 10px;">Uložit základní cenu</button>
+                            <button type="submit" name="update_base_price" class="save-profile-button">Uložit základní cenu</button>
                         </form>
                     </div>
                     <div class="price-box">
                         <h3>Přidat sezónní cenu</h3>
                         <form method="post" action="admin.php?tab=ceny">
-                            <div class="form-group-edit"><label>Název:</label><input type="text" name="nazev" required style="width: 100%; padding: 8px;"></div>
-                            <div class="form-group-edit"><label>Od:</label><input type="date" name="datum_od" required style="width: 100%; padding: 8px;"></div>
-                            <div class="form-group-edit"><label>Do:</label><input type="date" name="datum_do" required style="width: 100%; padding: 8px;"></div>
-                            <div class="form-group-edit"><label>Cena za noc (Kč):</label><input type="number" name="cena" required style="width: 100%; padding: 8px;"></div>
-                            <button type="submit" name="add_season" class="edit-profile-button" style="margin-top: 10px;">Přidat sezónu</button>
+                            <div class="form-group-edit"><label>Název:</label><input type="text" name="nazev" required></div>
+                            <div class="form-group-edit"><label>Od:</label><input type="date" name="datum_od" required></div>
+                            <div class="form-group-edit"><label>Do:</label><input type="date" name="datum_do" required></div>
+                            <div class="form-group-edit"><label>Cena za noc (Kč):</label><input type="number" name="cena" required></div>
+                            <button type="submit" name="add_season" class="edit-profile-button">Přidat sezónu</button>
                         </form>
                     </div>
                 </div>
-                <h3 style="margin-top: 30px;">Aktivní sezóny</h3>
-                <table class="admin-table">
+                <h3>Aktivní sezóny</h3>
+                <table class="admin-table" id="admin-price-table">
                     <thead><tr><th>Název</th><th>Termín</th><th>Cena/noc</th><th>Akce</th></tr></thead>
                     <tbody>
                         <?php while($s = $seasons_res->fetch_assoc()): ?>
