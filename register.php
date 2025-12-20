@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($conn->query($sql) === TRUE) {
     // Přesměrování na index a alert
       echo '<script>
-              window.location.href = "index.php";
+              window.location.href = "index.html";
               alert("Jste úspěšně zaregistrovaný/á");
             </script>';
   } else {

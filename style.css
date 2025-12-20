@@ -14,11 +14,11 @@ html, body{
     flex-direction: column;
   }
 
-  footer {
-    padding: 15px;
-    background-color: #333;
-    color: white;
-    text-align: center;
+footer {
+  padding: 15px;
+  background-color: #333;
+  color: white;
+  text-align: center;
   }
 
   .navbar {
@@ -31,10 +31,12 @@ html, body{
     padding: 10px 20px;
     margin-left: 20px;
     margin-right: 20px;
-    margin-top: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
     z-index: 1001;
   }
   #index-header-placeholder{
+    max-height: 0px;
     width: 100%;
     position: relative;
     top: 0;
@@ -43,6 +45,7 @@ html, body{
     pointer-events: auto; 
   }
   #header-placeholder{
+    max-height: 0px;
     width: 100%;
     position: relative;
   }
@@ -55,20 +58,26 @@ html, body{
   }
   
   /* Logo vlevo */
+  .logo{
+    width: 105px;
+    text-align: center;
+  }
   .logo a {
     text-decoration: none;
     color: black;
     font-size: 24px;
     font-weight: bold;
   }
+
   
 
   .nav-menu {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    display: flex; /* Always visible on larger screens */
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Add spacing between menu items */
   }
-  
+
   .nav-menu ul {
     list-style: none;
     display: flex;
@@ -105,6 +114,8 @@ html, body{
   .user-controls {
     display: flex;
     align-items: center;
+    width: 105px;
+    float: right;
   }
   
   .user-dropdown {
@@ -154,34 +165,81 @@ html, body{
   
 
   @media (max-width: 700px) {
+    html, body {
+      font-size: 14px; /* Zmenšíme základní velikost písma */
+      line-height: 1.5; /* Zvýšíme čitelnost textu */
+      padding: 0;
+      margin: 0;
+    }
     .nav-menu {
-        display: none;
-        width: 100%;
-        position: static;
-        transform: none;
+      display: none; /* Hide the menu by default on smaller screens */
+    }
+    
+    .nav-menu.active {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, -20%);
+      display: flex; /* Show the menu when the .active class is added */
+      flex-direction: column;
+      background-color: rgb(243, 250, 255);
+      justify-content: center;
+    }
+    #headernav .nav-menu a {
+      color: black;
+    }
+    .nav-menu a {
+      padding: 10px 40px;
+      font-size: 16px;
     }
   
     .nav-menu ul {
         flex-direction: column;
-        background-color: rgb(220, 240, 255);
-        padding: 10px;
+        background-color: rgb(243, 250, 255);
         justify-content: center;
     }
   
     .nav-menu li {
-        margin: 10px 0;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      margin: 0px;
+      border: 1px solid lightgray;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   
     .menu-toggle {
-        display: block;
+      position: absolute;
+      display: block;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
-
-    .nav-menu.active {
-        display: flex;
+    .user-controls {
+      right: 20px;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .logo {
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      position: absolute;
+    }
+    .btn-primary {
+      font-size: 1rem;
+      padding: 8px 16px;
+    }
+    .hero p {
+      font-size: 1rem;
+    }
+    .hero h1 {
+      font-size: 2rem; /* Zmenšíme nadpisy */
+    }
+    .hero {
+      padding: 20px;
+      text-align: center;
     }
   }
 
@@ -220,7 +278,7 @@ html, body{
 }
 
 .hero {
-  top: calc(50% - 108px);
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
@@ -238,9 +296,7 @@ html, body{
   align-items: center;
   text-align: center;
   color: white;
-  height: 90vh;
-  padding-top: 10px;
-  padding: 20px;
+  min-height: 100vh;
   position: relative;
 }
 
@@ -362,7 +418,8 @@ html, body{
 }
 
 
-#index-nav{
+#headernav{
+  height: 44px;
   position: relative;
   top: 0;
   left: 0;
@@ -373,10 +430,10 @@ html, body{
   z-index: 10;
   padding: 32px 43px;
 }
-#index-nav a{
+#headernav a{
   color: white;
 }
-#index-nav .username{
+#headernav .username{
 
   color: white;
 }
@@ -511,7 +568,7 @@ html, body{
   align-items: center;
   font-size: 0.95rem;
   border-top: 4px solid #cdd9e5;
-  position: fixed;;
+  position: fixed;
   bottom: 0;
   padding: 0.4vh;
 }
@@ -521,15 +578,31 @@ html, body{
   #kontakty-content {
     flex-direction: column;
     align-items: center;
+    width: 80%; /* Zmenšíme šířku */
+    padding: 20px;
+    gap: 20px;
+    height: fit-content;
+    max-height: 70%;
+    margin-top: 30px;
   }
 
   #kontakty-mapa, #kontakty-adresa {
     width: 100%;
-    max-width: 600px;
-  }
-
-  #kontakty-adresa {
     text-align: center;
+  }
+  #kontakty-mapa h2{
+    margin-top: 0px;
+    font-size: 1.5rem; 
+  }
+  #kontakty-adresa p {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  #kontakty-map-container iframe {
+    height: 100%;
+  }
+  #kontakty-adresa {
+    padding: 0px;
   }
 }
 
@@ -543,27 +616,25 @@ html, body{
 .reservation-hero {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   text-align: center;
   color: white;
-  min-height: 100vh; /* Aby to zabralo celou výšku */
-  padding: 20px;
+  min-height: 100vh;
   position: relative;
-  padding-top: 100px; /* Místo pro header */
 }
 
 /* Tvoje definice kontejneru */
 #rezervace {
   width: 100%;
   max-width: 800px;
-  margin: 40px auto; /* Auto vycentruje */
   padding: 30px;
   background-color: #f9f9f9; /* Šedé pozadí - text bude čitelný */
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: relative; 
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 2; 
 }
 
@@ -667,6 +738,13 @@ button[type="submit"]:disabled {
 .price-result-box.active {
     display: block;
 }
+.price-box{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+}
 
 .error-msg {
     color: #d9534f;
@@ -684,7 +762,6 @@ button[type="submit"]:disabled {
 @media (max-width: 600px) {
   #rezervace {
     padding: 15px;
-    margin: 20px 10px;
   }
   .form-row {
       flex-direction: column;
@@ -714,6 +791,10 @@ button[type="submit"]:disabled {
 /* ********************************************************************************************* */
 
 #login-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -731,8 +812,7 @@ button[type="submit"]:disabled {
   align-items: center;
   text-align: center;
   color: white;
-  height: 100%; 
-  position: relative;
+  height: 100vh;
 }
 
 .login-form-wrapper {
@@ -788,44 +868,46 @@ button[type="submit"]:disabled {
   background-color: black;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
+  #login-container {
+    height: auto; /* Allow the container to adjust height dynamically */
+    width: 90%; /* Reduce the width for smaller screens */
+    padding: 15px;
+  }
+
   .login-form-wrapper {
-    padding: 20px;
+    padding: 20px; /* Reduce padding for smaller screens */
+    width: 100%; /* Ensure the form takes up the full width */
   }
 
   .login-title {
-    font-size: 20px;
+    font-size: 20px; /* Adjust the title size */
   }
 
   .form-input {
-    padding: 8px;
+    padding: 8px; /* Reduce padding for input fields */
+    font-size: 14px; /* Adjust font size for input fields */
   }
 
   .login-button {
-    padding: 8px;
-    font-size: 14px;
+    padding: 8px; /* Reduce padding for the button */
+    font-size: 14px; /* Adjust font size for the button */
   }
 }
+
 /* ********************************************************************************************* */
 /* ******************************** Registration page ****************************************** */
 /* ********************************************************************************************* */
 
 /* CSS for the registration form */
-.registration-form-wrapper {
-  display: flex;
-  flex-direction: column; /* Stack the title and form vertically */
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh - 160px); /* Adjust height to leave space for header and footer */
-  margin: 80px 0; /* Add equal spacing from header and footer */
-}
 
 .registration-title {
   font-size: 28px; /* Slightly larger font size */
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  margin: 20px;
   text-align: center;
-  color: white;
+  color: black;
 }
 
 .registration-hero {
@@ -835,17 +917,22 @@ button[type="submit"]:disabled {
   align-items: center;
   text-align: center;
   color: white;
-  height: 100%; 
-  position: relative;
+  height: 120vh; 
 }
 
 #registration-form {
+  margin-top: 10px;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: #ffffff;
   padding: 40px; /* Increased padding for better spacing */
+  padding-top: 0px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-width: 500px; /* Increased width */
-  width: 100%;
+  width: 50vw;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -896,6 +983,14 @@ button[type="submit"]:disabled {
 .registration-button:hover {
   background-color: #00325e;
 }
+@media (max-width: 600px) {
+  #registration-form {
+    width: 80vw; /* Adjust width for smaller screens */
+    padding: 20px; /* Reduce padding for smaller screens */
+    margin-top: 40px;
+    padding-top: 0px;
+  }
+}
 
 /* ********************************************************************************************* */
 /* ******************************** Gallery ****************************************** */
@@ -907,8 +1002,7 @@ button[type="submit"]:disabled {
   align-items: center;
   text-align: center;
   color: white;
-  height: 90vh;
-  padding: 20px;
+  min-height: 100vh;
   position: relative;
 }
 
@@ -1248,7 +1342,7 @@ button[type="submit"]:disabled {
 }
 
 #admin-container {
-  width: 100%;
+  width: 90vw;
   max-width: 1200px; /* Širší než profil, aby se vešla tabulka */
   background: rgba(255, 255, 255, 0.95);
   padding: 30px;

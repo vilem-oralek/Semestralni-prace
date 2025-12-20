@@ -287,5 +287,6 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
             if(event && event.currentTarget) event.currentTarget.classList.add("active");
         }
     </script>
+    <script src="menu.js"></script>
 </body>
 </html>

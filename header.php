@@ -36,7 +36,7 @@ if ($is_logged_in) {
     <link rel="stylesheet" href="style.css">
     </head>
     <body id = "headerBody">
-      <header class="navbar" id="index-nav">
+      <header class="navbar" id="headernav">
         <div class="logo">
           <a href="index.html">Chata</a>
         </div>
@@ -56,7 +56,7 @@ if ($is_logged_in) {
           </ul>
         </nav>
     
-        <div class="user-controls">
+        <div class="user-controls" onclick="toggleDropdown()">
           <div class="user-dropdown">
             <div class="username"><?php echo $display_name; ?></div>
             <div class="dropdown-content">
@@ -82,15 +82,5 @@ if ($is_logged_in) {
           </div>
         </div>
       </header>
-      
-          <script>
-            function toggleMenu() {
-              document.getElementById("navMenu").classList.toggle("active");
-            }
-            function toggleDropdown() {
-              const dropdowns = document.querySelectorAll('.dropdown-content');
-              dropdowns.forEach(menu => menu.classList.toggle('active'));
-            }
-          </script>
     </body>
 </html>

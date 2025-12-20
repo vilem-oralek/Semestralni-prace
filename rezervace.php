@@ -188,5 +188,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
             endInput.addEventListener('change', checkPrice);
         }
     </script>
+    <script src="menu.js"></script>
 </body>
 </html>
