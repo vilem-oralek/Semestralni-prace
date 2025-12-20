@@ -38,7 +38,7 @@ if ($is_logged_in) {
     <body id = "headerBody">
       <header class="navbar" id="headernav">
         <div class="logo">
-          <a href="index.html">Chata</a>
+          <a href="index.php">Chata</a>
         </div>
     
         <div class="menu-toggle" onclick="toggleMenu()">☰</div>

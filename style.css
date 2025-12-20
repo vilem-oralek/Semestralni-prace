@@ -1515,3 +1515,42 @@ button[type="submit"]:disabled {
     font-weight: bold;
 }
 
+/* ********************************************************************************************* */
+/* ********************************** INDEX GALERIE - KULATÁ *********************************** */
+/* ********************************************************************************************* */
+
+/* Mřížka pro obrázky na hlavní stránce */
+.index-content .gallery-grid {
+  display: grid;
+  /* Automaticky se poskládají vedle sebe, minimálně 200px široké */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px; /* MEZERY mezi obrázky */
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+/* Styl pro samotné obrázky v této mřížce */
+.index-content .gallery-grid img {
+  width: 100%;
+  height: 250px;       /* Pevná výška, aby byly všechny stejně vysoké */
+  object-fit: cover;   /* Obrázek vyplní plochu a ořízne se, nedeformuje se */
+  border-radius: 20px; /* ZAKULACENÉ ROHY */
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1); /* Hezčí stín */
+  transition: all 0.3s ease;
+}
+
+/* Efekt při najetí myší - lehce se zvedne */
+.index-content .gallery-grid img:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+}
+
+/* Úprava obrázku v sekci O NÁS, aby ladil */
+.about-image img {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 20px; /* Taky zakulatíme */
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
