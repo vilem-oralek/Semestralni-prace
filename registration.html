@@ -16,7 +16,7 @@
 <body>
     <div id="header-placeholder"></div>
     <main>
-        <section class="registration-hero">
+        <div class="registration-hero">
             <div class="background-image"></div>
         <section class="registration-form-wrapper">
             <form id="registration-form" method="post" action="register.php">
@@ -52,14 +52,13 @@
                 <button type="submit" name="sumbit" class="registration-button">Registrovat se</button>
             </form>
         </section>
-        </section>
+        </div>
     </main>
     <footer>
         <p>&copy; 2023 Modrý Jelen Lipno. Všechna práva vyhrazena.</p>
     </footer>
     <script src="menu.js"></script>
-
-    <script type="text/javascript">
+    <script>
         // Wait for the DOM to fully load before accessing elements
         document.addEventListener("DOMContentLoaded", function () {
             // Get references to the form and input fields
