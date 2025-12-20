@@ -30,7 +30,7 @@
                     <input type="text" id="last-name" name="last-name" class="form-inputa" placeholder="Zadejte své příjmení" required>
                 </div>
                 <div class="form-groupa">
-                    <label for="phone" class="form-labela">Telefonní číslo (bez předvolby)</label>
+                    <label for="phone" class="form-labela">Telefonní číslo </label>
                     <input type="tel" id="phone" name="phone" class="form-inputa" placeholder="Zadejte své telefonní číslo" pattern="[0-9]{9}" required>
                 </div>
                 <div class="form-groupa">
@@ -71,10 +71,6 @@
             const confirmEmail = document.getElementById("confirm-email");
             const password = document.getElementById("password");
             const birthdate = document.getElementById("birthdate");
-
-            // Set the max attribute of the birthdate input to today's date
-            const today = new Date().toISOString().split("T")[0];
-            birthdate.setAttribute("max", today);
 
             // Function to calculate age from birthdate
             function calculateAge(birthdateValue) {

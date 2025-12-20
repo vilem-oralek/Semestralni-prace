@@ -2,84 +2,98 @@
 session_start();
 include 'conn.php';
 
-// Zkontroluj, zda je uživatel přihlášen
+// 1. Kontrola přihlášení
 if (!isset($_SESSION['user_id'])) {
-    // Pokud není přihlášen, přesměruj ho
-    header("Location: login.html"); 
+    header("Location: login.html");
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
+$target_dir = "uploads/";
 
-// Cesta ke složce, kam se budou ukládat profilovky
-$upload_dir = 'uploads/profile_photos/';
+// Vytvoření složky, pokud neexistuje
+if (!file_exists($target_dir)) {
+    mkdir($target_dir, 0777, true);
+}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["profile-photo"])) {
-    $file = $_FILES["profile-photo"];
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['profile-photo'])) {
     
-    // Zpracování nahrávaného souboru
-    $file_name = $file["name"];
-    $file_tmp_name = $file["tmp_name"];
-    $file_error = $file["error"];
-    $file_size = $file["size"];
-    
-    // zízká příponu
+    $file = $_FILES['profile-photo'];
+    $file_name = $file['name'];
+    $file_tmp = $file['tmp_name'];
+    $file_error = $file['error'];
+
+    // Získání přípony souboru
     $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-    
-    // Povolené typy souborů
-    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-    
+    $allowed = array('jpg', 'jpeg', 'png');
+
     if (in_array($file_ext, $allowed)) {
         if ($file_error === 0) {
-            // Omez velikost (např. max 5MB = 5 * 1024 * 1024 B)
-            if ($file_size < 5000000) { 
+            
+            // Generování unikátního názvu
+            $new_file_name = "profile_" . $user_id . "_" . uniqid() . "." . $file_ext;
+            $file_destination = $target_dir . $new_file_name;
+
+            // --- ZAČÁTEK ZMENŠOVÁNÍ OBRÁZKU (GD Library) ---
+            
+            // 1. Získání původních rozměrů a typu
+            list($width_orig, $height_orig) = getimagesize($file_tmp);
+
+            // 2. Nastavení cílové velikosti (Max šířka 300px)
+            $target_width = 300;
+            
+            // Výpočet výšky se zachováním poměru stran
+            $ratio = $width_orig / $height_orig;
+            $target_height = $target_width / $ratio;
+
+            // 3. Vytvoření nového prázdného obrázku v paměti (TrueColor)
+            $image_p = imagecreatetruecolor($target_width, $target_height);
+
+            // 4. Načtení původního obrázku podle typu
+            if ($file_ext == 'jpg' || $file_ext == 'jpeg') {
+                $image = imagecreatefromjpeg($file_tmp);
+            } elseif ($file_ext == 'png') {
+                $image = imagecreatefrompng($file_tmp);
                 
-                // Vytvoření unikátního názvu souboru (proti přepsání a bezpečnost)
-                // Např.: 123_456789.jpg (user_id_unikátníčas.ext)
-                $new_file_name = $user_id . '_' . uniqid('', true) . '.' . $file_ext;
-                $file_destination = $upload_dir . $new_file_name;
-                
-                // Přesun souboru z dočasného umístění na server
-                if (move_uploaded_file($file_tmp_name, $file_destination)) {
-                    
-                    // Uložit novou cestu do databáze
-                    $stmt = $conn->prepare("UPDATE users SET profilovka_cesta = ? WHERE id = ?");
-                    // Ukládáme jen relativní cestu, např. uploads/profile_photos/123_...
-                    $stmt->bind_param("si", $file_destination, $user_id); 
-                    
-                    if ($stmt->execute()) {
-                        echo '<script>
-                                alert("Profilová fotka byla úspěšně nahrána.");
-                                window.location.href = "profile.php"; // Přesměrování zpět na profil
-                              </script>';
-                        exit;
-                    } else {
-                        // Pokud selže DB, smaž nahraný soubor
-                        unlink($file_destination);
-                        $error_message = "Chyba při ukládání do databáze.";
-                    }
-                } else {
-                    $error_message = "Chyba při přesunu souboru na server.";
-                }
-            } else {
-                $error_message = "Soubor je příliš velký (max 5MB).";
+                // Zachování průhlednosti u PNG
+                imagealphablending($image_p, false);
+                imagesavealpha($image_p, true);
             }
+
+            // 5. Zmenšení (Resampling - klíčová funkce z prezentace)
+            // Parametry: cíl, zdroj, cíl_x, cíl_y, zdroj_x, zdroj_y, cíl_šířka, cíl_výška, zdroj_šířka, zdroj_výška
+            imagecopyresampled($image_p, $image, 0, 0, 0, 0, $target_width, $target_height, $width_orig, $height_orig);
+
+            // 6. Uložení nového obrázku do složky
+            if ($file_ext == 'jpg' || $file_ext == 'jpeg') {
+                imagejpeg($image_p, $file_destination, 90); // Kvalita 90
+            } elseif ($file_ext == 'png') {
+                imagepng($image_p, $file_destination, 9); // Komprese 9
+            }
+
+            // Uvolnění paměti
+            imagedestroy($image_p);
+            imagedestroy($image);
+
+            // --- KONEC ZMENŠOVÁNÍ ---
+
+            // Aktualizace cesty v databázi
+            $stmt = $conn->prepare("UPDATE users SET profilovka_cesta = ? WHERE id = ?");
+            $stmt->bind_param("si", $file_destination, $user_id);
+            
+            if ($stmt->execute()) {
+                header("Location: profile.php?upload=success");
+            } else {
+                echo "Chyba při ukládání do DB.";
+            }
+
         } else {
-            $error_message = "Chyba při nahrávání souboru.";
+            echo "Nastala chyba při nahrávání souboru.";
         }
     } else {
-        $error_message = "Nepodporovaný typ souboru. Zvolte JPG, PNG nebo GIF.";
+        echo "Tento typ souboru není povolen (pouze JPG, JPEG, PNG).";
     }
-    
-    // Pokud nastala chyba, vypíšeme ji a přesměrujeme
-    echo '<script>
-            alert("Nahrání se nezdařilo: ' . addslashes($error_message) . '");
-            window.location.href = "profile.php"; 
-          </script>';
-    exit;
 } else {
-    // Pokud se někdo pokusí přejít na soubor přímo
     header("Location: profile.php");
-    exit;
 }
 ?>
