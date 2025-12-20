@@ -53,7 +53,7 @@ $files_on_page = array_slice($files, $offset, $per_page);
         <div class="background-image"></div>
         <div class="gallery-content-wrapper">
             <h1>Naše Galerie</h1>
-            <p style="color: white; margin-bottom: 30px;">Prohlédněte si krásy našeho ubytování a okolí.</p>
+            <p>Prohlédněte si krásy našeho ubytování a okolí.</p>
 
             <div class="gallery-grid">
                 <?php if (count($files_on_page) > 0): ?>

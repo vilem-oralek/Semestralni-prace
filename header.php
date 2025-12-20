@@ -35,13 +35,13 @@ if ($is_logged_in) {
     <title>Chata</title>
     <link rel="stylesheet" href="style.css">
     </head>
-    <body id = "headerBody">
+    <body id="headerBody">
       <header class="navbar" id="headernav">
         <div class="logo">
           <a href="index.php">Chata</a>
         </div>
     
-        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        <div class="menu-toggle" id="menuToggle">☰</div>
     
         <nav class="nav-menu" id="navMenu">
           <ul>
@@ -49,14 +49,14 @@ if ($is_logged_in) {
             <li><a href="rezervace.php">Rezervace</a></li>
             
             <?php if ($is_admin): ?>
-                <li><a href="admin.php" style="color: #ffcccc; font-weight: bold;">Admin Panel</a></li>
+                <li><a href="admin.php" id="admin-panel">Admin Panel</a></li>
             <?php endif; ?>
             
             <li><a href="kontakty.php">Kontakt</a></li>
           </ul>
         </nav>
     
-        <div class="user-controls" onclick="toggleDropdown()">
+        <div class="user-controls">
           <div class="user-dropdown">
             <div class="username"><?php echo $display_name; ?></div>
             <div class="dropdown-content">
@@ -71,7 +71,7 @@ if ($is_logged_in) {
             </div>
           </div>
           <div class="user-photo-dropdown">
-            <img src="<?php echo $profile_image_path; ?>" alt="Profilová fotka" class="user-photo" onclick="toggleDropdown()">
+            <img src="<?php echo $profile_image_path; ?>" alt="Profilová fotka" class="user-photo" id="userPhoto">
             <div class="dropdown-content">
               <?php if ($is_logged_in): ?>
                 <a href="profile.php">Profil</a>

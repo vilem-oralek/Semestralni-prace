@@ -35,6 +35,10 @@ footer {
     margin-bottom: 20px;
     z-index: 1001;
   }
+  nav ul li #admin-panel{
+    color: #ff7373;
+    font-weight: bold;
+  }
   #index-header-placeholder{
     max-height: 0px;
     width: 100%;
@@ -1017,6 +1021,10 @@ button[type="submit"]:disabled {
   margin: 0 auto; /* Vycentrování */
   padding: 0 20px;
   box-sizing: border-box; /* Aby padding nerozhodil šířku */
+}
+.gallery-content-wrapper p{
+  color: white;
+  padding-bottom: 10px;
 }
 
 .gallery-content-wrapper h1 {

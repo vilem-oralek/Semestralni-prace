@@ -132,9 +132,9 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
             <?php if($msg): ?><div class="msg-box"><?php echo $msg; ?></div><?php endif; ?>
 
             <div class="admin-tabs">
-                <button class="tab-button <?php echo $active_tab=='users'?'active':''; ?>" onclick="openTab('users-tab')">Uživatelé</button>
-                <button class="tab-button <?php echo $active_tab=='rezervace'?'active':''; ?>" onclick="openTab('reservations-tab')">Rezervace</button>
-                <button class="tab-button <?php echo $active_tab=='ceny'?'active':''; ?>" onclick="openTab('prices-tab')">Ceník</button>
+                <button class="tab-button <?php echo $active_tab=='users'?'active':''; ?>" data-tab="users-tab">Uživatelé</button>
+                <button class="tab-button <?php echo $active_tab=='rezervace'?'active':''; ?>" data-tab="reservation-tab">Rezervace</button>
+                <button class="tab-button <?php echo $active_tab=='ceny'?'active':''; ?>" data-tab="prices-tab">Ceník</button>
             </div>
 
             <div id="users-tab" class="tab-content" style="display: <?php echo $active_tab=='users'?'block':'none'; ?>;">
@@ -154,7 +154,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                                     <a href="admin.php?action=toggle_role&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-role">
                                         <?php echo $u['role'] == 'admin' ? '⬇ User' : '⬆ Admin'; ?>
                                     </a>
-                                    <a href="admin.php?action=delete&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-delete" onclick="return confirm('Opravdu smazat tohoto uživatele?');">Smazat</a>
+                                    <a href="admin.php?action=delete&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-delete" data-confirm="Opravdu smazat tohoto uživatele?">Smazat</a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
@@ -197,7 +197,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                                 <td><strong><?php echo number_format($r['celkova_cena'], 0, ',', ' '); ?> Kč</strong></td>
                                 <td><?php echo htmlspecialchars($r['poznamka']); ?></td>
                                 <td>
-                                    <a href="admin.php?delete_res=<?php echo $r['id']; ?>&tab=rezervace" class="btn-action btn-delete" onclick="return confirm('Smazat rezervaci?');">Storno</a>
+                                    <a href="admin.php?delete_res=<?php echo $r['id']; ?>&tab=rezervace" class="btn-action btn-delete" data-confirm="Smazat rezervaci?">Storno</a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>

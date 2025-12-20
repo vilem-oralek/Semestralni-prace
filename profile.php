@@ -64,7 +64,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
             <li>Telefon: <span id="user-phone"><?php echo htmlspecialchars($user['telefon'] ?? 'N/A'); ?></span></li>
             <li>Datum narození: <span id="user-birthdate"><?php echo htmlspecialchars($user['datum_narozeni'] ?? 'N/A'); ?></span></li>
           </ul>
-          <button type="button" class="edit-profile-button" onclick="toggleEditMode()">Upravit údaje</button>
+          <button type="button" class="edit-profile-button" id="editProfileButton">Upravit údaje</button>
         </div>
 
         <div id="edit-view" style="display:none;">
@@ -96,7 +96,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
             </div>
             
             <button type="submit" class="save-profile-button">Uložit změny</button>
-            <button type="button" class="cancel-profile-button" onclick="toggleEditMode()">Zrušit</button>
+            <button type="button" class="cancel-profile-button" id="cancelEditButton">Zrušit</button>
           </form>
         </div>
 
@@ -142,19 +142,29 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
   </section>
   <?php include 'footer.html'; ?>
   <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const displayView = document.getElementById('display-view');
+    const editView = document.getElementById('edit-view');
+    const editProfileButton = document.getElementById('editProfileButton');
+    const cancelEditButton = document.getElementById('cancelEditButton');
+
+    // Function to toggle between display and edit modes
     function toggleEditMode() {
-      const displayView = document.getElementById('display-view');
-      const editView = document.getElementById('edit-view');
-      if (displayView.style.display !== 'none') {
-        // Přepnout na formulář
-        displayView.style.display = 'none';
-        editView.style.display = 'block';
-      } else {
-        // Přepnout zpět na seznam
-        editView.style.display = 'none';
-        displayView.style.display = 'block';
-      }
+        if (displayView.style.display !== 'none') {
+            // Switch to edit mode
+            displayView.style.display = 'none';
+            editView.style.display = 'block';
+        } else {
+            // Switch back to display mode
+            editView.style.display = 'none';
+            displayView.style.display = 'block';
+        }
     }
+
+    // Attach event listeners to the buttons
+    editProfileButton.addEventListener('click', toggleEditMode);
+    cancelEditButton.addEventListener('click', toggleEditMode);
+});
   </script>
   <script src="menu.js"></script>
 </body>
