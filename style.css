@@ -1579,3 +1579,55 @@ button[type="submit"]:disabled {
   border-radius: 20px; /* Taky zakulatíme */
   box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
+/* ********************************************************************************************* */
+/* ********************************** TISK (PRINT) ********************************************* */
+/* ********************************************************************************************* */
+
+@media print {
+  header, 
+  footer, 
+  .navbar, 
+  .menu-toggle, 
+  .user-controls, 
+  .btn, 
+  .btn-primary, 
+  .btn-action, 
+  .login-button,
+  .save-profile-button,
+  .edit-profile-button,
+  .register-link,
+  .admin-tabs, 
+  .actions-cell, 
+  .pagination,
+  #header-placeholder,
+  #index-header-placeholder {
+      display: none !important;
+  }
+
+  /* Nastavíme správné barvy a pozadí */
+  body, #admin-container, .login-form-wrapper, .gallery-content-wrapper {
+      background: white !important;
+      color: black !important;
+      box-shadow: none !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+  }
+
+  /* Roztáhneme obsah na celou šířku papíru */
+  .admin-hero, .gallery-hero, .login-hero, .hero {
+      padding: 0 !important;
+      min-height: auto !important;
+      display: block !important;
+  }
+
+  /* Ujistíme se, že tabulky jsou vidět celé */
+  .table-responsive {
+      overflow: visible !important;
+  }
+  
+  a {
+      text-decoration: none !important;
+      color: black !important;
+  }
+}
