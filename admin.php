@@ -126,7 +126,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
 
     <section class="admin-hero">
         
-        <main id="admin-container">
+        <div id="admin-container">
             <h1 class="admin-title">Admin Panel</h1>
 
             <?php if($msg): ?><div class="msg-box"><?php echo $msg; ?></div><?php endif; ?>
@@ -245,12 +245,10 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                     </tbody>
                 </table>
             </div>
-
-        </main>
+        </div>
     </section>
-
     <footer><p>&copy; 2023 Vilémův strejda. Admin Sekce.</p></footer>
-
+    
     <script>
         function openTab(tabName) {
             var contents = document.getElementsByClassName("tab-content");

@@ -4,7 +4,7 @@ include 'conn.php';
 
 // Kontrola přihlášení 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.html"); 
+    header("Location: login.html");
     exit;
 }
 
@@ -50,7 +50,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
   <div id="header-placeholder"></div>
   <section class="profile-hero">
     <div class="background-image"></div>
-    <main id="profile-container">
+    <div id="profile-container">
       <h1 class="profile-title">Můj Profil</h1>
       
       <section class="profile-details">
@@ -138,7 +138,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
           <?php endif; ?>
         </ul>
       </section>
-    </main>
+    </div>
   </section>
     <footer>
         <p>&copy; 2023 Vilémův strejda. Všechna práva vyhrazena.</p>

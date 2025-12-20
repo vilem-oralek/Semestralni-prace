@@ -60,6 +60,7 @@ $index_images = array_slice($index_images, 0, 4);
 
     <section class="gallery reveal">
       <h2>Galerie</h2>
+      <a href = "galerie.php">
       <div class="gallery-grid">
         
         <?php if (!empty($index_images)): ?>
@@ -69,8 +70,8 @@ $index_images = array_slice($index_images, 0, 4);
         <?php else: ?>
             <p style="text-align:center; width:100%; padding: 20px;">Zatím zde nejsou žádné obrázky.</p>
         <?php endif; ?>
-
       </div>
+      </a>
     </section>
 
     <section class="contact reveal">
