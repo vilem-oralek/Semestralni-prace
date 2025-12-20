@@ -167,11 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
             <?php endif; ?>
         </div>
     </section>
-
-    <footer>
-        <p>&copy; 2023 Vilémův strejda. Všechna práva vyhrazena.</p>
-    </footer>
-
+    <?php include 'footer.html'; ?>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const startInput = document.getElementById('datum_prijezdu');

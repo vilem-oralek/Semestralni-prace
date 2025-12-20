@@ -44,9 +44,7 @@
         </div>
       </section>
       </main>
-    <footer>
-        <p>&copy; 2023 Modrý Jelen Lipno. Všechna práva vyhrazena.</p>
-    </footer>
+    <?php include 'footer.html'; ?>
   <script src="menu.js"></script>
 </body>
 </html>

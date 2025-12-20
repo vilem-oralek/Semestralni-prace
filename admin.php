@@ -247,8 +247,8 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
             </div>
         </div>
     </section>
-    <footer><p>&copy; 2023 Vilémův strejda. Admin Sekce.</p></footer>
-    
+    <?php include 'footer.html'; ?>
+
     <script>
         function openTab(tabName) {
             var contents = document.getElementsByClassName("tab-content");

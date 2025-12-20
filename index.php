@@ -78,10 +78,7 @@ $index_images = array_slice($index_images, 0, 4);
       <h2>Kontakt</h2>
       <p>Máte otázky? Kontaktujte nás na <a href="mailto:info@vilemuvstrejda.cz">info@vilemuvstrejda.cz</a> nebo volejte na <a href="tel:+420123456789">+420 123 456 789</a>.</p>
     </section>
-
-    <footer class="reveal">
-      <p>&copy; 2023 Vilémův strejda. Všechna práva vyhrazena.</p>
-    </footer>
+  <?php include 'footer.html'; ?>
   </div> 
   <script>
     const observer = new IntersectionObserver((entries) => {

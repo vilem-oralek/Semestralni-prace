@@ -52,7 +52,7 @@ if ($is_logged_in) {
                 <li><a href="admin.php" style="color: #ffcccc; font-weight: bold;">Admin Panel</a></li>
             <?php endif; ?>
             
-            <li><a href="kontakty.html">Kontakt</a></li>
+            <li><a href="kontakty.php">Kontakt</a></li>
           </ul>
         </nav>
     

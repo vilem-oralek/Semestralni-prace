@@ -618,7 +618,7 @@ footer {
   flex-direction: column;
   text-align: center;
   color: white;
-  min-height: 115vh;
+  min-height: 110vh;
   position: relative;
 }
 
@@ -627,7 +627,7 @@ footer {
   width: 800px;
   max-width: 80vw;
   padding: 30px;
-  margin-top: 50px;
+  margin-top: 30px;
   background-color: #f9f9f9; /* Šedé pozadí - text bude čitelný */
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -921,11 +921,11 @@ button[type="submit"]:disabled {
   align-items: center;
   text-align: center;
   color: white;
-  height: 120vh; 
+  height: 100vh; 
 }
 
 #registration-form {
-  margin-top: 10px;
+  margin-top: 40px;
   position: relative;
   top: 50%;
   left: 50%;
@@ -935,13 +935,14 @@ button[type="submit"]:disabled {
   padding-top: 0px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 50vw;
-  max-width: 500px;
+  max-width: 80vw;
+  width: 500px;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-y: auto;
 }
-
 .form-groupa {
   width: 100%;
   margin-bottom: 15px;
@@ -1128,7 +1129,7 @@ button[type="submit"]:disabled {
   width: 100%;
   position: relative;
   box-sizing: border-box;
-  min-height: 150vh;
+  height: 100vh;
 }
 
 .profile-title {
@@ -1144,12 +1145,14 @@ button[type="submit"]:disabled {
   left: 50%;
   transform: translate(-50%, -50%);
   max-width: 80vw;
-  width: 900px; 
+  width: 1100px;
+  max-height: 70vh;
   margin-top: 20px;
   background: rgba(255, 255, 255, 0.9); 
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  overflow-y: auto;
 }
 
 

@@ -11,6 +11,11 @@
       .then(data => {
         document.getElementById("header-placeholder").innerHTML = data;
       });
+      fetch("footer.html")
+        .then(response => response.text())
+        .then(data => {
+        document.getElementById("footer-placeholder").innerHTML = data;
+      })
   </script>
 </head>
 <body>
@@ -34,9 +39,7 @@
       </section>  
     </main>
   </div>
-  <footer>
-    <p>&copy; 2023 Modrý Jelen Lipno. Všechna práva vyhrazena.</p>
-  </footer>
+  <div id="footer-placeholder"></div>
   <script src="menu.js"></script>
 </body>
 </html>

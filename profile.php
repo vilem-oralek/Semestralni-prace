@@ -140,25 +140,22 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
       </section>
     </div>
   </section>
-    <footer>
-        <p>&copy; 2023 Vilémův strejda. Všechna práva vyhrazena.</p>
-    </footer>
-    <script>
-      function toggleEditMode() {
-        const displayView = document.getElementById('display-view');
-        const editView = document.getElementById('edit-view');
-
-        if (displayView.style.display !== 'none') {
-          // Přepnout na formulář
-          displayView.style.display = 'none';
-          editView.style.display = 'block';
-        } else {
-          // Přepnout zpět na seznam
-          editView.style.display = 'none';
-          displayView.style.display = 'block';
-        }
+  <?php include 'footer.html'; ?>
+  <script>
+    function toggleEditMode() {
+      const displayView = document.getElementById('display-view');
+      const editView = document.getElementById('edit-view');
+      if (displayView.style.display !== 'none') {
+        // Přepnout na formulář
+        displayView.style.display = 'none';
+        editView.style.display = 'block';
+      } else {
+        // Přepnout zpět na seznam
+        editView.style.display = 'none';
+        displayView.style.display = 'block';
       }
-    </script>
-    <script src="menu.js"></script>
+    }
+  </script>
+  <script src="menu.js"></script>
 </body>
 </html>
