@@ -18,6 +18,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </script>';
     exit; // Zastaví další zpracování
   }
+  
+  $stmt = $conn->prepare("SELECT email FROM users WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows > 0) {
+    // E-mail již existuje
+    echo '<script>
+            alert("Tento e-mail je již registrován. Použijte jiný e-mail.");
+            window.history.back(); // Vrátí uživatele zpět na registrační formulář
+          </script>';
+    exit; // Zastaví další zpracování
+  }
 
   // Zahashování hesla do proměné 
   $hashed_password = password_hash($password, PASSWORD_DEFAULT);

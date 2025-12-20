@@ -84,7 +84,7 @@ if (isset($_GET['delete_res'])) {
 // ---------------------------------------------------------
 // LOGIKA STRÁNKOVÁNÍ (Pagination)
 // ---------------------------------------------------------
-$limit = 10; // Max uživatelů na stránku
+$limit = 5; // Max uživatelů na stránku
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
