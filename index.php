@@ -83,7 +83,6 @@ $index_images = array_slice($index_images, 0, 4);
       <p>&copy; 2023 Vilémův strejda. Všechna práva vyhrazena.</p>
     </footer>
   </div> 
-
   <script>
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -94,10 +93,9 @@ $index_images = array_slice($index_images, 0, 4);
     }, {
         threshold: 0.1
     });
-
     const hiddenElements = document.querySelectorAll('.reveal');
     hiddenElements.forEach((el) => observer.observe(el));
   </script>
-
+  <script src="menu.js"></script>
 </body>
 </html>

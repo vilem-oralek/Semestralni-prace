@@ -143,7 +143,6 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
     <footer>
         <p>&copy; 2023 Vilémův strejda. Všechna práva vyhrazena.</p>
     </footer>
-
     <script>
       function toggleEditMode() {
         const displayView = document.getElementById('display-view');
@@ -160,5 +159,6 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
         }
       }
     </script>
+    <script src="menu.js"></script>
 </body>
 </html>

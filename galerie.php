@@ -92,5 +92,6 @@ $files_on_page = array_slice($files, $offset, $per_page);
     <footer>
         <p>&copy; 2023 Vilémův strejda. Všechna práva vyhrazena.</p>
     </footer>
+    <script src="menu.js"></script>
 </body>
 </html>
