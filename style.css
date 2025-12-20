@@ -997,18 +997,18 @@ button[type="submit"]:disabled {
 }
 
 /* ********************************************************************************************* */
-/* ********************************** GALERIE CSS ********************************************** */
-/* ********************************************************************************************* */
-/* ********************************************************************************************* */
-/* ********************************** GALERIE CSS ********************************************** */
+/* ********************************** GALERIE CSS - FIXED ************************************** */
 /* ********************************************************************************************* */
 
+/* Hero sekce se nyní roztáhne, aby vyplnila místo a footer byl dole */
 .gallery-hero {
-  min-height: 100vh;
+  /* Odstraněno min-height: 100vh, které tlačilo footer moc dolů */
+  flex: 1; /* Roztáhne se do zbylého prostoru */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Obsah začíná nahoře */
   padding-top: 100px;
   padding-bottom: 50px;
-  display: flex;
-  justify-content: center;
   position: relative;
 }
 
@@ -1018,7 +1018,9 @@ button[type="submit"]:disabled {
   text-align: center;
   width: 100%;
   max-width: 1200px;
+  margin: 0 auto; /* Vycentrování */
   padding: 0 20px;
+  box-sizing: border-box; /* Aby padding nerozhodil šířku */
 }
 
 .gallery-content-wrapper h1 {
@@ -1030,6 +1032,7 @@ button[type="submit"]:disabled {
 /* Mřížka pro obrázky */
 .gallery-grid {
   display: grid;
+  /* Desktop: Automaticky podle místa (min 250px) */
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   margin-bottom: 40px;
@@ -1049,8 +1052,8 @@ button[type="submit"]:disabled {
 
 .gallery-item img {
   width: 100%;
-  height: 200px; /* Fixní výška pro hezkou mřížku */
-  object-fit: cover; /* Aby se obrázek nedeformoval */
+  height: 200px;
+  object-fit: cover;
   border-radius: 5px;
   display: block;
 }
@@ -1061,6 +1064,7 @@ button[type="submit"]:disabled {
   justify-content: center;
   gap: 10px;
   margin-top: 20px;
+  flex-wrap: wrap; /* Aby se tlačítka na malém mobilu zalomila */
 }
 
 .page-link {
@@ -1082,6 +1086,29 @@ button[type="submit"]:disabled {
 .page-link.active {
   background-color: #004b87;
   color: white;
+}
+
+/* --- RESPONZIVITA PRO MOBILY --- */
+@media (max-width: 600px) {
+  /* Na mobilu dáme 1 obrázek na řádek, aby byl velký a hezký */
+  .gallery-grid {
+      grid-template-columns: 1fr; 
+  }
+  
+  .gallery-content-wrapper h1 {
+      font-size: 2rem; /* Menší nadpis */
+  }
+  
+  .gallery-hero {
+      padding-top: 80px; /* Trochu méně místa nahoře */
+  }
+}
+
+/* Tablet (mezi mobilem a desktopem) - 2 sloupce */
+@media (min-width: 601px) and (max-width: 900px) {
+  .gallery-grid {
+      grid-template-columns: 1fr 1fr;
+  }
 }
 
 
