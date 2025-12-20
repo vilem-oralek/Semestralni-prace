@@ -59,7 +59,7 @@ if (!$user_to_edit) {
         <main id="profile-container"> <h1 class="profile-title">Editace Uživatele (Admin)</h1>
             
             <div class="profile-details">
-                <div id="edit-view" style="display:flex; justify-content:center;">
+                <div id="edit-view" id="view-edit-admin">
                   <form id="profile-edit-form" method="post" action="admin_edit_user.php">
                     <input type="hidden" name="user_id" value="<?php echo $user_to_edit['id']; ?>">
                     
@@ -89,7 +89,7 @@ if (!$user_to_edit) {
                     </div>
                     
                     <button type="submit" class="save-profile-button">Uložit změny</button>
-                    <a href="admin.php" class="cancel-profile-button" style="text-decoration:none; display:inline-block; text-align:center;">Zrušit</a>
+                    <a href="admin.php" class="cancel-profile-button" id = "zrusit-admin">Zrušit</a>
                   </form>
                 </div>
             </div>

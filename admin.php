@@ -126,7 +126,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
 
     <section class="admin-hero">
         
-        <div id="admin-container">
+        <main id="admin-container">
             <h1 class="admin-title">Admin Panel</h1>
 
             <?php if($msg): ?><div class="msg-box"><?php echo $msg; ?></div><?php endif; ?>
@@ -137,7 +137,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                 <button class="tab-button <?php echo $active_tab=='ceny'?'active':''; ?>" data-tab="prices-tab">Ceník</button>
             </div>
 
-            <div id="users-tab" class="tab-content" style="display: <?php echo $active_tab=='users'?'block':'none'; ?>;">
+            <div id="users-tab" class="tab-content <?php echo $active_tab=='users' ? 'active' : ''; ?>">
                 <h2>Seznam uživatelů</h2>
                 <div class="table-responsive">
                     <table class="admin-table" id="admin-user-table">
@@ -177,7 +177,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                 </div>
             </div>
 
-            <div id="reservations-tab" class="tab-content" style="display: <?php echo $active_tab=='rezervace'?'block':'none'; ?>;">
+            <div id="reservations-tab" class="tab-content <?php echo $active_tab=='rezervace'?'active':'none'; ?>">
                 <h2>Všechny Rezervace</h2>
                 <div class="table-responsive">
                     <table class="admin-table" id="admin-reservation-table">
@@ -206,7 +206,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                 </div>
             </div>
 
-            <div id="prices-tab" class="tab-content" style="display: <?php echo $active_tab=='ceny'?'block':'none'; ?>;">
+            <div id="prices-tab" class="tab-content <?php echo $active_tab=='ceny'?'active':' '; ?>">
                 <h2>Nastavení Cen</h2>
                 <div class="price-settings-grid">
                     <div class="price-box">
@@ -245,9 +245,11 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                     </tbody>
                 </table>
             </div>
-        </div>
+
+        </main>
     </section>
-    <?php include 'footer.html'; ?>
+
+    <footer><p>&copy; 2023 Vilémův strejda. Admin Sekce.</p></footer>
 
     <script>
         function openTab(tabName) {

@@ -260,6 +260,11 @@ footer {
     url('background-image.jpg') no-repeat center center;
     background-size: cover;
 }
+#p-index-style{
+  text-align:center;
+  width:100%; 
+  padding: 20px;
+}
 .background-image {
   position: fixed;
   top: 0;
@@ -1134,6 +1139,9 @@ button[type="submit"]:disabled {
   box-sizing: border-box;
   height: 100vh;
 }
+#display-profile{
+  display: none;
+}
 
 .profile-title {
   font-size: 3.5rem; 
@@ -1351,7 +1359,22 @@ button[type="submit"]:disabled {
 /* ********************************************************************************************* */
 /* ********************************** ADMIN PANEL CSS ****************************************** */
 /* ********************************************************************************************* */
+#view-edit-admin{
+  justify-content:center;
+  display:flex;
+}
+.tab-content {
+  display: none;
+}
 
+.tab-content.active {
+  display: block;
+}
+#zrusit-admin{
+  text-decoration:none; 
+  display:inline-block; 
+  text-align:center;
+}
 .msg-box { 
   background: #d4edda;
   color: #155724;
@@ -1639,3 +1662,4 @@ button[type="submit"]:disabled {
       color: black !important;
   }
 }
+

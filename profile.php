@@ -67,7 +67,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
           <button type="button" class="edit-profile-button" id="editProfileButton">Upravit údaje</button>
         </div>
 
-        <div id="edit-view" style="display:none;">
+        <div id="edit-view" id = "display-profile">
           <form id="profile-edit-form" method="post" action="update_profile.php">
             
             <div class="form-group-edit">

@@ -68,7 +68,7 @@ $index_images = array_slice($index_images, 0, 4);
                 <img src="thumbnail.php?img=<?php echo $img; ?>&dir=index" alt="Náhled ubytování">
             <?php endforeach; ?>
         <?php else: ?>
-            <p style="text-align:center; width:100%; padding: 20px;">Zatím zde nejsou žádné obrázky.</p>
+            <p id = "p-index-style" >Zatím zde nejsou žádné obrázky.</p>
         <?php endif; ?>
       </div>
       </a>
