@@ -177,30 +177,42 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                 </div>
             </div>
 
-            <div id="reservations-tab" class="tab-content <?php echo $active_tab=='rezervace'?'active':'none'; ?>">
+            <div id="reservations-tab" class="tab-content <?php echo $active_tab=='rezervace'?'active':''; ?>">
                 <h2>Všechny Rezervace</h2>
                 <div class="table-responsive">
                     <table class="admin-table" id="admin-reservation-table">
-                        <thead><tr><th>ID</th><th>Host</th><th>Kontakt</th><th>Od - Do</th><th>Cena</th><th>Poznámka</th><th>Akce</th></tr></thead>
-                        <tbody>
-                            <?php while($r = $reservations_res->fetch_assoc()): ?>
+                        <thead>
                             <tr>
-                                <td><?php echo $r['id']; ?></td>
-                                <td>
-                                    <?php echo htmlspecialchars($r['jmeno'].' '.$r['prijmeni']); ?>
-                                </td>
-                                <td>
-                                    <?php echo htmlspecialchars($r['email']); ?><br>
-                                    <small><?php echo htmlspecialchars($r['telefon']); ?></small>
-                                </td>
-                                <td><?php echo date('d.m.Y', strtotime($r['datum_prijezdu'])).' - '.date('d.m.Y', strtotime($r['datum_odjezdu'])); ?></td>
-                                <td><strong><?php echo number_format($r['celkova_cena'], 0, ',', ' '); ?> Kč</strong></td>
-                                <td><?php echo htmlspecialchars($r['poznamka']); ?></td>
-                                <td>
-                                    <a href="admin.php?delete_res=<?php echo $r['id']; ?>&tab=rezervace" class="btn-action btn-delete" data-confirm="Smazat rezervaci?">Storno</a>
-                                </td>
+                                <th>ID</th>
+                                <th>Host</th>
+                                <th>Kontakt</th>
+                                <th>Od - Do</th>
+                                <th>Cena</th>
+                                <th>Poznámka</th>
+                                <th>Akce</th>
                             </tr>
-                            <?php endwhile; ?>
+                        </thead>
+                        <tbody>
+                            <?php if ($reservations_res->num_rows == 0): ?>
+                                <tr><td colspan="7">Žádné rezervace nebyly nalezeny.</td></tr>
+                            <?php else: ?>
+                                <?php while ($r = $reservations_res->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo $r['id']; ?></td>
+                                        <td><?php echo htmlspecialchars($r['jmeno'] . ' ' . $r['prijmeni']); ?></td>
+                                        <td>
+                                            <?php echo htmlspecialchars($r['email']); ?><br>
+                                            <small><?php echo htmlspecialchars($r['telefon']); ?></small>
+                                        </td>
+                                        <td><?php echo date('d.m.Y', strtotime($r['datum_prijezdu'])) . ' - ' . date('d.m.Y', strtotime($r['datum_odjezdu'])); ?></td>
+                                        <td><strong><?php echo number_format($r['celkova_cena'], 0, ',', ' '); ?> Kč</strong></td>
+                                        <td><?php echo htmlspecialchars($r['poznamka']); ?></td>
+                                        <td>
+                                            <a href="admin.php?delete_res=<?php echo $r['id']; ?>&tab=rezervace" class="btn-action btn-delete" data-confirm="Smazat rezervaci?">Storno</a>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -252,14 +264,30 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
     <footer><p>&copy; 2023 Vilémův strejda. Admin Sekce.</p></footer>
 
     <script>
-        function openTab(tabName) {
-            var contents = document.getElementsByClassName("tab-content");
-            for (var i = 0; i < contents.length; i++) { contents[i].style.display = "none"; }
-            var buttons = document.getElementsByClassName("tab-button");
-            for (var i = 0; i < buttons.length; i++) { buttons[i].classList.remove("active"); }
-            document.getElementById(tabName).style.display = "block";
-            if(event && event.currentTarget) event.currentTarget.classList.add("active");
-        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const tabButtons = document.querySelectorAll(".tab-button");
+            const tabContents = document.querySelectorAll(".tab-content");
+
+            function openTab(tabName) {
+                tabContents.forEach(content => content.style.display = "none");
+                tabButtons.forEach(button => button.classList.remove("active"));
+
+                document.getElementById(tabName).style.display = "block";
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add("active");
+            }
+
+            tabButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const tabName = this.getAttribute("data-tab");
+                    openTab(tabName);
+                });
+            });
+
+            const activeTab = document.querySelector(".tab-button.active");
+            if (activeTab) {
+                openTab(activeTab.getAttribute("data-tab"));
+            }
+        });
     </script>
     <script src="menu.js"></script>
 </body>
