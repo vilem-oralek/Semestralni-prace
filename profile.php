@@ -35,7 +35,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
     <title>Můj Profil</title>
     <script>
       fetch("header.php")
@@ -66,7 +66,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
           <button type="button" class="edit-profile-button" id="editProfileButton">Upravit údaje</button>
         </div>
 
-        <div id="edit-view" style="display:none;">
+        <div id="edit-view">
           <form id="profile-edit-form" method="post" action="update_profile.php">
             
             <div class="form-group-edit">

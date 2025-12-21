@@ -188,7 +188,7 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                                 </tr>
                                 <?php endwhile; ?>
                             <?php else: ?>
-                                <tr><td colspan="7" style="text-align:center; padding:20px;">Žádné rezervace nebyly nalezeny.</td></tr>
+                                <tr><td colspan="7" id = "admin-tr">Žádné rezervace nebyly nalezeny.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

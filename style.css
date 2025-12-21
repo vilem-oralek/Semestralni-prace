@@ -1297,13 +1297,6 @@ button[type="submit"]:disabled {
 /* ********************************** PROFIL EDITACE CSS  *************************** */
 /* ********************************************************************************************* */
 
-.profile-details #edit-view {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 #profile-edit-form {
   display: flex;
   flex-direction: column;
@@ -1377,6 +1370,10 @@ button[type="submit"]:disabled {
   display:flex;
 }
 
+#admin-tr{
+  text-align: center;
+  padding: 20px;
+}
 #zrusit-admin{
   text-decoration:none; 
   display:inline-block; 
@@ -1691,5 +1688,22 @@ a.tab-button {
       text-decoration: none !important;
       color: black !important;
   }
+}
+/* ********************************************************************************************* */
+/* ********************************** ANIMACE (SCROLL REVEAL) ********************************** */
+/* ********************************************************************************************* */
+
+/* Výchozí stav - skrytý a posunutý dolů */
+.reveal {
+  opacity: 0;
+  transform: translateY(50px); /* Posun o 50px dolů */
+  transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); /* Plynulý přechod */
+  will-change: opacity, transform; /* Optimalizace pro prohlížeč */
+}
+
+/* Stav po zobrazení - viditelný a na svém místě */
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
