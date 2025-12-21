@@ -1016,7 +1016,9 @@ button[type="submit"]:disabled {
   padding-bottom: 50px;
   position: relative;
 }
-
+#p-text{
+  color: white;
+}
 .gallery-content-wrapper {
   position: relative;
   z-index: 2;
@@ -1363,13 +1365,7 @@ button[type="submit"]:disabled {
   justify-content:center;
   display:flex;
 }
-.tab-content {
-  display: none;
-}
 
-.tab-content.active {
-  display: block;
-}
 #zrusit-admin{
   text-decoration:none; 
   display:inline-block; 
@@ -1382,6 +1378,29 @@ button[type="submit"]:disabled {
   margin-bottom: 20px;
   border-radius: 5px;
   text-align: center;
+}
+a.tab-button {
+  text-decoration: none;      /* Zruší podtržení odkazu */
+  display: inline-block;      /* Aby měly rozměry jako tlačítka */
+  text-align: center;
+  cursor: pointer;
+  color: black;
+ 
+}
+
+/* Pojistka pro obsah tabů - musí být v CSS, aby to fungovalo */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .price-settings-grid { 
   display: grid;

@@ -65,7 +65,7 @@ $files_on_page = array_slice($files, $offset, $per_page);
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <p style="color: white;">Zatím zde nejsou žádné fotografie.</p>
+                    <p id = "p-text">Zatím zde nejsou žádné fotografie.</p>
                 <?php endif; ?>
             </div>
 
