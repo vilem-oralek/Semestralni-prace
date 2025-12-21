@@ -6,9 +6,19 @@
  * a přesměruje uživatele na přihlašovací stránku.
  */
 
-session_start(); // Startování session
-session_unset(); // Odstranění všech session proměnných
-session_destroy(); // Zničení session
-header("Location: login.html"); // Přesměrování na přihlašovací stránku
-exit; // Ukončení skriptu
+
+/**
+ * Odhlásí uživatele, ukončí session a přesměruje na přihlašovací stránku.
+ *
+ * @return void
+ */
+function logout_user() {
+	session_start();
+	session_unset();
+	session_destroy();
+	header("Location: login.html");
+	exit;
+}
+
+logout_user();
 ?>

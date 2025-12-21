@@ -7,60 +7,50 @@
  * a zda má administrátorská práva, aby zobrazil admin panel.
  */
 
+
 session_start();
-/**
- * @var bool $is_logged_in Informace o tom, zda je uživatel přihlášen.
- */
-$is_logged_in = isset($_SESSION['user_id']);
-/**
- * @var bool $is_admin Informace o tom, zda je uživatel administrátor.
- */
-$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 
 /**
- * @var string $profile_image_path Cesta k profilové fotce uživatele.
- * Pokud není nastavena, použije se výchozí obrázek.
+ * Vrátí informace o přihlášeném uživateli pro zobrazení v hlavičce.
+ * Pokud není přihlášen, vrací výchozí hodnoty.
+ *
+ * @return array Pole s klíči: is_logged_in, is_admin, profile_image_path, display_name
  */
-$profile_image_path = 'profile-picture-default.jpg';
-/**
- * @var string $display_name Jméno uživatele zobrazené v hlavičce.
- * Pokud není nastavena hodnota, použije se výchozí text "Profil".
- */
-$display_name = 'Profil'; 
-
-/**
- * Načtení dat přihlášeného uživatele z databáze.
- * Pokud je uživatel přihlášen, načtou se jeho jméno a cesta k profilové fotce.
- */
-if ($is_logged_in) {
-    include 'conn.php'; // Připojení k databázi
-    /**
-     * @var int $user_id ID přihlášeného uživatele.
-     */
+function get_header_user_info() {
+  $is_logged_in = isset($_SESSION['user_id']);
+  $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+  $profile_image_path = 'profile-picture-default.jpg';
+  $display_name = 'Profil';
+  if ($is_logged_in) {
+    include 'conn.php';
     $user_id = $_SESSION['user_id'];
-    
-    // Příprava SQL dotazu pro načtení uživatelských dat
     $stmt = $conn->prepare("SELECT jmeno, profilovka_cesta FROM users WHERE id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
-
-    /**
-     * @var array|null $user_data Pole obsahující informace o uživateli.
-     * Pokud uživatel není nalezen, hodnota je null.
-     */
     $user_data = $result->fetch_assoc();
-    
-    // Nastavení profilové fotky a zobrazení jména
     if ($user_data) {
-        if (!empty($user_data['profilovka_cesta'])) {
-            $profile_image_path = htmlspecialchars($user_data['profilovka_cesta']);
-        }
-        if (!empty($user_data['jmeno'])) {
-            $display_name = htmlspecialchars($user_data['jmeno']);
-        }
+      if (!empty($user_data['profilovka_cesta'])) {
+        $profile_image_path = htmlspecialchars($user_data['profilovka_cesta']);
+      }
+      if (!empty($user_data['jmeno'])) {
+        $display_name = htmlspecialchars($user_data['jmeno']);
+      }
     }
+  }
+  return [
+    'is_logged_in' => $is_logged_in,
+    'is_admin' => $is_admin,
+    'profile_image_path' => $profile_image_path,
+    'display_name' => $display_name
+  ];
 }
+
+$header_info = get_header_user_info();
+$is_logged_in = $header_info['is_logged_in'];
+$is_admin = $header_info['is_admin'];
+$profile_image_path = $header_info['profile_image_path'];
+$display_name = $header_info['display_name'];
 ?>
 <!DOCTYPE html>
 <html>

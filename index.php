@@ -6,42 +6,38 @@
  * a jejich zobrazení na hlavní stránce.
  */
 
-/**
- * @var string $dir Cesta ke složce s obrázky pro galerii.
- */
-$dir = "uploads/index/";
-/**
- * @var array $index_images Pole obsahující názvy obrázků načtených ze složky.
- * Obrázky jsou filtrovány podle přípon .jpg, .jpeg, nebo .png.
- */
-$index_images = [];
 
 /**
- * Kontrola, zda složka s obrázky existuje.
- * Pokud složka existuje, načtou se všechny soubory ve složce.
- * 
- * @return void
+ * Vrátí pole obrázků z dané složky (pouze jpg, jpeg, png).
+ * @param string $dir Cesta ke složce s obrázky
+ * @return array Pole názvů obrázků
  */
-if (is_dir($dir)) {
-    $scan = scandir($dir); // Načtení obsahu složky
-    /**
-     * Procházení všech souborů ve složce a filtrování pouze obrázků.
-     * Obrázky jsou přidány do pole $index_images.
-     */
+function get_index_images($dir) {
+  $images = [];
+  if (is_dir($dir)) {
+    $scan = scandir($dir);
     foreach ($scan as $file) {
-        if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png)$/i', $file)) {
-            $index_images[] = $file;
-        }
+      if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png)$/i', $file)) {
+        $images[] = $file;
+      }
     }
+  }
+  return $images;
 }
 
 /**
- * Výběr prvních čtyř obrázků pro zobrazení v galerii.
- * Pokud je ve složce více obrázků, zobrazí se pouze první čtyři.
- * 
- * @var array $index_images Aktualizované pole obsahující maximálně 4 obrázky.
+ * Vrátí maximálně $count obrázků z pole.
+ * @param array $images Pole obrázků
+ * @param int $count Počet obrázků k vrácení
+ * @return array
  */
-$index_images = array_slice($index_images, 0, 4);
+function get_limited_images($images, $count = 4) {
+  return array_slice($images, 0, $count);
+}
+
+$dir = "uploads/index/";
+$index_images = get_index_images($dir);
+$index_images = get_limited_images($index_images, 4);
 ?>
 <!DOCTYPE html>
 <html lang="cs">

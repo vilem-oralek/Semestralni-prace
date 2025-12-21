@@ -6,117 +6,91 @@
  * validaci vstupů a uložení rezervace do databáze.
  */
 
+
 session_start();
 include 'conn.php';
-include 'calculate_price_logic.php'; // Načteme logiku výpočtu ceny
+include 'calculate_price_logic.php';
 
 /**
- * @var bool $is_logged_in Informace o tom, zda je uživatel přihlášen.
+ * Vrátí předvyplněná data uživatele pro formulář rezervace.
+ * @param mysqli $conn
+ * @param int $user_id
+ * @return array
  */
-$is_logged_in = isset($_SESSION['user_id']);
-
-/**
- * @var array $pre_data Pole obsahující předvyplněná data uživatele (jméno, příjmení, email, telefon).
- */
-$pre_data = [];
-
-/**
- * Načtení uživatelských dat pro předvyplnění formuláře, pokud je uživatel přihlášen.
- * 
- * @return void
- */
-if ($is_logged_in) {
-    $user_id = $_SESSION['user_id'];
+function get_pre_data($conn, $user_id) {
     $stmt = $conn->prepare("SELECT jmeno, prijmeni, email, telefon FROM users WHERE id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $res = $stmt->get_result();
     if ($res->num_rows > 0) {
-        $pre_data = $res->fetch_assoc();
+        return $res->fetch_assoc();
     }
+    return [];
 }
 
 /**
- * Zpracování formuláře rezervace.
- * Pokud je formulář odeslán metodou POST a uživatel je přihlášen,
- * provede se validace vstupů a uložení rezervace do databáze.
- * 
+ * Zpracuje rezervaci, provede validace a uloží do DB.
+ * @param mysqli $conn
  * @return void
  */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
-    $user_id = $_SESSION['user_id'];
-
-    // Data z formuláře
-    $start = $_POST['datum_prijezdu'];
-    $end = $_POST['datum_odjezdu'];
-    $poznamka = trim($_POST['poznamka']);
-    $jmeno = trim($_POST['jmeno']);
-    $prijmeni = trim($_POST['prijmeni']);
-    $email = trim($_POST['email']);
-    $telefon = trim($_POST['telefon']);
-
-    // Sanitize inputs
-    $poznamka = htmlspecialchars($poznamka, ENT_QUOTES, 'UTF-8');
-    $jmeno = htmlspecialchars($jmeno, ENT_QUOTES, 'UTF-8');
-    $prijmeni = htmlspecialchars($prijmeni, ENT_QUOTES, 'UTF-8');
-    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-    $telefon = htmlspecialchars($telefon, ENT_QUOTES, 'UTF-8');
-
-    /**
-     * PHP validace vstupů, pokud je obešlá javascript validace.
-     * Kontroluje délku poznámky, jména, příjmení, formát emailu, telefonní číslo a datumy.
-     */
-    if (strlen($poznamka) > 50) {
-        echo "<script>alert('Poznámka nesmí být delší než 50 znaků.'); window.history.back();</script>";
-        exit;
-    }
-    if (strlen($jmeno) < 3 || strlen($prijmeni) < 3) {
-        echo "<script>alert('Jméno a příjmení musí mít alespoň 3 znaky.'); window.history.back();</script>";
-        exit;
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo "<script>alert('Neplatný formát e-mailu.'); window.history.back();</script>";
-        exit;
-    }
-    if (!preg_match('/^\d{9}$/', $telefon)) {
-        echo "<script>alert('Telefonní číslo musí obsahovat přesně 9 číslic.'); window.history.back();</script>";
-        exit;
-    }
-    if ($start >= $end) {
-        echo "<script>alert('Datum odjezdu musí být později než datum příjezdu.'); window.history.back();</script>";
-        exit;
-    }
-
-    /**
-     * Kontrola dostupnosti termínu.
-     * Pokud je termín obsazen, zobrazí se chybová zpráva.
-     */
-    if (!isTermAvailable($conn, $start, $end)) {
-        echo "<script>alert('Chyba: Termín je již obsazen!'); window.location.href='rezervace.php';</script>";
-        exit;
-    }
-
-    /**
-     * Výpočet celkové ceny rezervace.
-     * 
-     * @var float $final_price Celková cena rezervace.
-     */
-    $final_price = calculateTotalPrice($conn, $start, $end);
-
-    /**
-     * Uložení rezervace do databáze.
-     * Pokud se rezervace uloží úspěšně, uživatel je přesměrován na stránku profilu.
-     */
-    $stmt = $conn->prepare("INSERT INTO reservations (user_id, datum_prijezdu, datum_odjezdu, celkova_cena, poznamka, jmeno, prijmeni, email, telefon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issdsssss", $user_id, $start, $end, $final_price, $poznamka, $jmeno, $prijmeni, $email, $telefon);
-
-    if ($stmt->execute()) {
-        echo "<script>alert('Rezervace byla úspěšně vytvořena!'); window.location.href='profile.php';</script>";
-        exit;
-    } else {
-        echo "<script>alert('Chyba při ukládání: " . $conn->error . "');</script>";
+function process_reservation($conn) {
+    $is_logged_in = isset($_SESSION['user_id']);
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
+        $user_id = $_SESSION['user_id'];
+        $start = $_POST['datum_prijezdu'];
+        $end = $_POST['datum_odjezdu'];
+        $poznamka = trim($_POST['poznamka']);
+        $jmeno = trim($_POST['jmeno']);
+        $prijmeni = trim($_POST['prijmeni']);
+        $email = trim($_POST['email']);
+        $telefon = trim($_POST['telefon']);
+        $poznamka = htmlspecialchars($poznamka, ENT_QUOTES, 'UTF-8');
+        $jmeno = htmlspecialchars($jmeno, ENT_QUOTES, 'UTF-8');
+        $prijmeni = htmlspecialchars($prijmeni, ENT_QUOTES, 'UTF-8');
+        $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+        $telefon = htmlspecialchars($telefon, ENT_QUOTES, 'UTF-8');
+        if (strlen($poznamka) > 50) {
+            echo "<script>alert('Poznámka nesmí být delší než 50 znaků.'); window.history.back();</script>";
+            exit;
+        }
+        if (strlen($jmeno) < 3 || strlen($prijmeni) < 3) {
+            echo "<script>alert('Jméno a příjmení musí mít alespoň 3 znaky.'); window.history.back();</script>";
+            exit;
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo "<script>alert('Neplatný formát e-mailu.'); window.history.back();</script>";
+            exit;
+        }
+        if (!preg_match('/^\d{9}$/', $telefon)) {
+            echo "<script>alert('Telefonní číslo musí obsahovat přesně 9 číslic.'); window.history.back();</script>";
+            exit;
+        }
+        if ($start >= $end) {
+            echo "<script>alert('Datum odjezdu musí být později než datum příjezdu.'); window.history.back();</script>";
+            exit;
+        }
+        if (!isTermAvailable($conn, $start, $end)) {
+            echo "<script>alert('Chyba: Termín je již obsazen!'); window.location.href='rezervace.php';</script>";
+            exit;
+        }
+        $final_price = calculateTotalPrice($conn, $start, $end);
+        $stmt = $conn->prepare("INSERT INTO reservations (user_id, datum_prijezdu, datum_odjezdu, celkova_cena, poznamka, jmeno, prijmeni, email, telefon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issdsssss", $user_id, $start, $end, $final_price, $poznamka, $jmeno, $prijmeni, $email, $telefon);
+        if ($stmt->execute()) {
+            echo "<script>alert('Rezervace byla úspěšně vytvořena!'); window.location.href='profile.php';</script>";
+            exit;
+        } else {
+            echo "<script>alert('Chyba při ukládání: " . $conn->error . "');</script>";
+        }
     }
 }
+
+$is_logged_in = isset($_SESSION['user_id']);
+$pre_data = [];
+if ($is_logged_in) {
+    $pre_data = get_pre_data($conn, $_SESSION['user_id']);
+}
+process_reservation($conn);
 ?>
 <!DOCTYPE html>
 <html lang="cs">

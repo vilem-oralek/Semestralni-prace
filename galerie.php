@@ -6,70 +6,56 @@
  * je na stránce s možností přecházení mezi stránkami.
  */
 
- /**
- * @var string $dir Cesta ke složce s obrázky pro galerii.
- */
-$dir = "uploads/Galerie/";
 
 /**
- * @var array $files Pole obsahující názvy všech obrázků načtených ze složky.
+ * Vrátí pole obrázků z dané složky (pouze jpg, jpeg, png).
+ * @param string $dir Cesta ke složce s obrázky
+ * @return array Pole názvů obrázků
  */
-$files = [];
-
-/**
- * Kontrola, zda složka s obrázky existuje.
- * Pokud složka existuje, načtou se všechny soubory ve složce.
- * 
- * @return void
- */
-if (is_dir($dir)) {
-    $scan = scandir($dir); // Načtení obsahu složky
-
-    /**
-     * Procházení všech souborů ve složce a filtrování pouze obrázků.
-     * Obrázky jsou přidány do pole $files.
-     */
-    foreach ($scan as $file) {
-        // Filtrujeme jen obrázky (jpg, png) a ignorujeme tečky
-        if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png)$/i', $file)) {
-            $files[] = $file;
+function get_gallery_files($dir) {
+    $files = [];
+    if (is_dir($dir)) {
+        $scan = scandir($dir);
+        foreach ($scan as $file) {
+            if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png)$/i', $file)) {
+                $files[] = $file;
+            }
         }
     }
+    return $files;
 }
 
 /**
- * @var int $total_files Celkový počet obrázků ve složce.
+ * Vrátí pole obrázků pro danou stránku.
+ * @param array $files Všechna jména obrázků
+ * @param int $page Aktuální stránka
+ * @param int $per_page Počet obrázků na stránku
+ * @return array Obrázky pro aktuální stránku
  */
+function get_files_on_page($files, $page, $per_page) {
+    $offset = ($page - 1) * $per_page;
+    return array_slice($files, $offset, $per_page);
+}
+
+/**
+ * Vrátí počet stránek galerie.
+ * @param int $total_files Celkový počet obrázků
+ * @param int $per_page Počet obrázků na stránku
+ * @return int Počet stránek
+ */
+function get_total_pages($total_files, $per_page) {
+    return (int)ceil($total_files / $per_page);
+}
+
+$dir = "uploads/Galerie/";
+$files = get_gallery_files($dir);
 $total_files = count($files);
-/**
- * @var int $per_page Počet obrázků zobrazených na jedné stránce.
- */
 $per_page = 8;
-
-/**
- * @var int $total_pages Celkový počet stránek vypočítaný na základě počtu obrázků a počtu obrázků na stránku.
- */
-$total_pages = ceil($total_files / $per_page);
-
-/**
- * Zjištění aktuální stránky z parametru GET.
- * Pokud není stránka nastavena, použije se výchozí hodnota 1.
- * 
- * @var int $page Aktuální stránka.
- */
+$total_pages = get_total_pages($total_files, $per_page);
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 if ($page > $total_pages && $total_pages > 0) $page = $total_pages;
-
-/**
- * @var int $offset Výpočet offsetu pro načtení obrázků na aktuální stránku.
- */
-$offset = ($page - 1) * $per_page;
-
-/**
- * @var array $files_on_page Pole obsahující obrázky pro aktuální stránku.
- */
-$files_on_page = array_slice($files, $offset, $per_page);
+$files_on_page = get_files_on_page($files, $page, $per_page);
 ?>
 <!DOCTYPE html>
 <html lang="cs">

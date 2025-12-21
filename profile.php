@@ -5,58 +5,66 @@
  * Tento soubor zobrazuje osobní údaje uživatele, umožňuje jejich úpravu,
  * zobrazuje profilovou fotku a seznam rezervací uživatele.
  */
+
 session_start();
-include 'conn.php'; // Připojení k databázi
+include 'conn.php';
 
 /**
- * Kontrola přihlášení uživatele.
- * Pokud uživatel není přihlášen, je přesměrován na přihlašovací stránku.
- * 
+ * Zkontroluje přihlášení uživatele, jinak přesměruje na login.
  * @return void
  */
-if (!isset($_SESSION['user_id'])) {
+function require_login() {
+  if (!isset($_SESSION['user_id'])) {
     header("Location: login.html");
     exit;
+  }
 }
 
 /**
- * @var int $user_id ID přihlášeného uživatele.
+ * Načte informace o uživateli podle ID.
+ * @param mysqli $conn
+ * @param int $user_id
+ * @return array|null
  */
-$user_id = $_SESSION['user_id'];
-/**
- * @var array|null $user Pole obsahující informace o uživateli.
- * Pokud uživatel není nalezen, hodnota je null.
- */
-$user = null; 
+function get_user_data($conn, $user_id) {
+  $stmt = $conn->prepare("SELECT jmeno, prijmeni, telefon, email, datum_narozeni, profilovka_cesta FROM users WHERE id = ?");
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  if ($result->num_rows == 1) {
+    return $result->fetch_assoc();
+  }
+  return null;
+}
 
 /**
- * Načtení dat uživatele z databáze.
- * 
+ * Pokud uživatel nebyl nalezen, zruší session a přesměruje na login.
+ * @param array|null $user
  * @return void
  */
-$stmt = $conn->prepare("SELECT jmeno, prijmeni, telefon, email, datum_narozeni, profilovka_cesta FROM users WHERE id = ?"); 
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows == 1) {
-    $user = $result->fetch_assoc();
-}
-
-/**
- * Pokud uživatel nebyl nalezen, session je zrušena a uživatel je přesměrován na přihlašovací stránku.
- */
-if (!$user) {
+function require_user_exists($user) {
+  if (!$user) {
     session_unset();
     session_destroy();
     header("Location: login.html");
     exit;
+  }
 }
 
 /**
- * @var string $profile_image_path Cesta k profilové fotce uživatele.
- * Pokud není profilová fotka nastavena, použije se výchozí obrázek.
+ * Vrátí profilovou fotku uživatele nebo výchozí obrázek.
+ * @param array $user
+ * @return string
  */
-$profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-picture-default.jpg');
+function get_profile_image_path($user) {
+  return htmlspecialchars($user['profilovka_cesta'] ?? 'profile-picture-default.jpg');
+}
+
+require_login();
+$user_id = $_SESSION['user_id'];
+$user = get_user_data($conn, $user_id);
+require_user_exists($user);
+$profile_image_path = get_profile_image_path($user);
 ?>
 <!DOCTYPE html>
 <html lang="cs">
