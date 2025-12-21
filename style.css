@@ -1297,6 +1297,7 @@ button[type="submit"]:disabled {
 /* ********************************** PROFIL EDITACE CSS  *************************** */
 /* ********************************************************************************************* */
 
+<<<<<<< HEAD
 .profile-details #edit-view {
   width: 100%;
   display: none;
@@ -1304,6 +1305,8 @@ button[type="submit"]:disabled {
   align-items: center;
 }
 
+=======
+>>>>>>> f739debe5b0143d03ef90b09defbba76f1e848c9
 #profile-edit-form {
   display: flex;
   flex-direction: column;

@@ -1,12 +1,30 @@
 <?php
+/**
+ * @file rezervace.php
+ * Stránka pro vytvoření nové rezervace.
+ * Tento soubor obsahuje logiku pro zpracování formuláře rezervace,
+ * validaci vstupů a uložení rezervace do databáze.
+ */
+
 session_start();
 include 'conn.php';
 include 'calculate_price_logic.php'; // Načteme logiku výpočtu ceny
 
+/**
+ * @var bool $is_logged_in Informace o tom, zda je uživatel přihlášen.
+ */
 $is_logged_in = isset($_SESSION['user_id']);
+
+/**
+ * @var array $pre_data Pole obsahující předvyplněná data uživatele (jméno, příjmení, email, telefon).
+ */
 $pre_data = [];
 
-// 1. Pokud je uživatel přihlášen, načteme jeho data pro předvyplnění formuláře
+/**
+ * Načtení uživatelských dat pro předvyplnění formuláře, pokud je uživatel přihlášen.
+ * 
+ * @return void
+ */
 if ($is_logged_in) {
     $user_id = $_SESSION['user_id'];
     $stmt = $conn->prepare("SELECT jmeno, prijmeni, email, telefon FROM users WHERE id = ?");
@@ -18,7 +36,13 @@ if ($is_logged_in) {
     }
 }
 
-// 2. ZPRACOVÁNÍ REZERVACE
+/**
+ * Zpracování formuláře rezervace.
+ * Pokud je formulář odeslán metodou POST a uživatel je přihlášen,
+ * provede se validace vstupů a uložení rezervace do databáze.
+ * 
+ * @return void
+ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
     $user_id = $_SESSION['user_id'];
 
@@ -38,43 +62,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
     $email = filter_var($email, FILTER_SANITIZE_EMAIL);
     $telefon = htmlspecialchars($telefon, ENT_QUOTES, 'UTF-8');
 
-    // Validate "poznámka" length
+    /**
+     * PHP validace vstupů, pokud je obešlá javascript validace.
+     * Kontroluje délku poznámky, jména, příjmení, formát emailu, telefonní číslo a datumy.
+     */
     if (strlen($poznamka) > 50) {
         echo "<script>alert('Poznámka nesmí být delší než 50 znaků.'); window.history.back();</script>";
         exit;
     }
-
-    // Validate other fields (e.g., name, surname, email, phone, dates)
     if (strlen($jmeno) < 3 || strlen($prijmeni) < 3) {
         echo "<script>alert('Jméno a příjmení musí mít alespoň 3 znaky.'); window.history.back();</script>";
         exit;
     }
-
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         echo "<script>alert('Neplatný formát e-mailu.'); window.history.back();</script>";
         exit;
     }
-
     if (!preg_match('/^\d{9}$/', $telefon)) {
         echo "<script>alert('Telefonní číslo musí obsahovat přesně 9 číslic.'); window.history.back();</script>";
         exit;
     }
-
     if ($start >= $end) {
         echo "<script>alert('Datum odjezdu musí být později než datum příjezdu.'); window.history.back();</script>";
         exit;
     }
 
-    // Validate availability
+    /**
+     * Kontrola dostupnosti termínu.
+     * Pokud je termín obsazen, zobrazí se chybová zpráva.
+     */
     if (!isTermAvailable($conn, $start, $end)) {
         echo "<script>alert('Chyba: Termín je již obsazen!'); window.location.href='rezervace.php';</script>";
         exit;
     }
 
-    // Calculate price
+    /**
+     * Výpočet celkové ceny rezervace.
+     * 
+     * @var float $final_price Celková cena rezervace.
+     */
     $final_price = calculateTotalPrice($conn, $start, $end);
 
-    // Insert reservation into the database
+    /**
+     * Uložení rezervace do databáze.
+     * Pokud se rezervace uloží úspěšně, uživatel je přesměrován na stránku profilu.
+     */
     $stmt = $conn->prepare("INSERT INTO reservations (user_id, datum_prijezdu, datum_odjezdu, celkova_cena, poznamka, jmeno, prijmeni, email, telefon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("issdsssss", $user_id, $start, $end, $final_price, $poznamka, $jmeno, $prijmeni, $email, $telefon);
 
@@ -184,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
             // Validate name
             nameInput.addEventListener("blur", function () {
                 const nameValue = nameInput.value.trim();
-                if (nameValue.length < 3) {
+                if (nameValue.length < 3 || nameValue.length > 40) {
                     nameInput.style.border = "solid red 3px";
                 } else {
                     nameInput.style.border = "solid black 1px";
@@ -195,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
             // Validate surname
             surnameInput.addEventListener("blur", function () {
                 const surnameValue = surnameInput.value.trim();
-                if (surnameValue.length < 3) {
+                if (surnameValue.length < 3 || surnameValue.length > 40) {
                     surnameInput.style.border = "solid red 3px";
                 } else {
                     surnameInput.style.border = "solid black 1px";

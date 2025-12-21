@@ -1,15 +1,34 @@
 <?php
-session_start();
-include 'conn.php';
+/**
+ * @file admin.php
+ * Administrační panel.
+ * Tento soubor umožňuje administrátorovi spravovat uživatele, rezervace a ceny.
+ * Obsahuje logiku pro mazání uživatelů, změnu rolí, správu sezónních cen a rezervací.
+ */
 
-// ZABEZPEČENÍ
+session_start();
+include 'conn.php'; // Připojení k databázi
+
+/**
+ * Zabezpečení přístupu.
+ * Kontrola, zda je uživatel přihlášen a má administrátorská práva.
+ * Pokud ne, je přesměrován na přihlašovací stránku.
+ * 
+ * @return void
+ */
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.html");
     exit;
 }
 
-// ZPRACOVÁNÍ AKCÍ (Mazání, Změna role)
+/**
+ * Zpracování akcí (mazání uživatelů, změna rolí).
+ * Pokud je v URL parametr `action` a `id`, provede se odpovídající akce.
+ */
 if (isset($_GET['action']) && isset($_GET['id'])) {
+    /**
+     * @var int $action_id ID uživatele, na kterém se provádí akce.
+     */
     $action_id = intval($_GET['id']);
     
     // Ochrana: Admin nemůže smazat/upravit roli sám sobě
@@ -20,6 +39,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
     // 1. Smazání uživatele
     if ($_GET['action'] == 'delete') {
+        /**
+         * Smazání uživatele z databáze.
+         * Po úspěšném smazání je administrátor přesměrován zpět na seznam uživatelů.
+         */
         $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
         $stmt->bind_param("i", $action_id);
         $stmt->execute();
@@ -28,6 +51,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     } 
     // 2. Změna role (User <-> Admin)
     elseif ($_GET['action'] == 'toggle_role') {
+        /**
+         * Změna role uživatele.
+         * Pokud je uživatel admin, změní se na user, a naopak.
+         */
         $stmt = $conn->prepare("SELECT role FROM users WHERE id = ?");
         $stmt->bind_param("i", $action_id);
         $stmt->execute();
@@ -44,18 +71,30 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     }
 }
 
+/**
+ * @var string $msg Zpráva pro administrátora (např. potvrzení akce).
+ * Tato zpráva se zobrazí na stránce po provedení akce.
+ */
 $msg = "";
 if(isset($_GET['msg'])) {
     if($_GET['msg'] == 'deleted') $msg = "Uživatel byl smazán.";
     if($_GET['msg'] == 'role_changed') $msg = "Role uživatele byla změněna.";
 }
 
+/**
+ * Zpracování formuláře pro aktualizaci základní ceny.
+ * Pokud je odeslán formulář, aktualizuje se základní cena v databázi.
+ */
 if (isset($_POST['update_base_price'])) {
     $new_price = floatval($_POST['base_price']);
     $conn->query("UPDATE base_price SET cena_za_noc = $new_price");
     $msg = "Základní cena aktualizována.";
 }
 
+/**
+ * Zpracování formuláře pro přidání sezónní ceny.
+ * Přidává novou sezónní cenu do databáze.
+ */
 if (isset($_POST['add_season'])) {
     $nazev = $_POST['nazev'];
     $od = $_POST['datum_od'];
@@ -67,6 +106,9 @@ if (isset($_POST['add_season'])) {
     $msg = "Sezóna přidána.";
 }
 
+/**
+ * Zpracování požadavku na smazání sezónní ceny.
+ */
 if (isset($_GET['delete_season'])) {
     $id = intval($_GET['delete_season']);
     $conn->query("DELETE FROM season_prices WHERE id = $id");
@@ -74,19 +116,31 @@ if (isset($_GET['delete_season'])) {
     exit;
 }
 
+/**
+ * Zpracování požadavku na smazání rezervace.
+ */
 if (isset($_GET['delete_res'])) {
     $id = intval($_GET['delete_res']);
     $conn->query("DELETE FROM reservations WHERE id = $id");
     header("Location: admin.php?tab=rezervace");
     exit;
 }
-
+    
 // ---------------------------------------------------------
 // LOGIKA STRÁNKOVÁNÍ (Pagination)
 // ---------------------------------------------------------
-$limit = 5; // Max uživatelů na stránku
+/**
+ * @var int $limit Počet uživatelů na stránku.
+ */
+$limit = 5;
+/**
+ * @var int $page Aktuální stránka.
+ */
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
+/**
+ * @var int $offset Offset pro SQL dotaz (pro stránkování).
+ */
 $offset = ($page - 1) * $limit;
 
 // Získání celkového počtu uživatelů
@@ -94,18 +148,22 @@ $count_res = $conn->query("SELECT COUNT(*) as total FROM users");
 $total_users = $count_res->fetch_assoc()['total'];
 $total_pages = ceil($total_users / $limit);
 
-// NAČTENÍ DAT
-// Uživatelé (S LIMITEM)
+// Načtení uživatelů s limitem a offsetem
 $stmt_users = $conn->prepare("SELECT * FROM users LIMIT ? OFFSET ?");
 $stmt_users->bind_param("ii", $limit, $offset);
 $stmt_users->execute();
 $users_res = $stmt_users->get_result();
 
-// Rezervace
+// Načtení rezervací
 $reservations_res = $conn->query("SELECT r.*, u.email as user_email FROM reservations r JOIN users u ON r.user_id = u.id ORDER BY r.datum_prijezdu ASC");
+// Načtení základní ceny
 $base_price_row = $conn->query("SELECT cena_za_noc FROM base_price LIMIT 1");
 $base_price_val = ($base_price_row && $base_price_row->num_rows > 0) ? $base_price_row->fetch_assoc()['cena_za_noc'] : 0;
+// Načtení sezónních cen
 $seasons_res = $conn->query("SELECT * FROM season_prices ORDER BY datum_od ASC");
+/**
+ * @var string $active_tab Aktivní záložka v administračním panelu.
+ */
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
 ?>
 <!DOCTYPE html>

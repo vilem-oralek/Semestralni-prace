@@ -1,22 +1,57 @@
 <?php
+/**
+ * @file header.php
+ * Hlavička webu.
+ * Tento soubor obsahuje logiku pro zobrazení hlavičky webu, včetně navigace,
+ * uživatelského menu a profilové fotky. Dynamicky kontroluje, zda je uživatel přihlášen,
+ * a zda má administrátorská práva, aby zobrazil admin panel.
+ */
+
 session_start();
+/**
+ * @var bool $is_logged_in Informace o tom, zda je uživatel přihlášen.
+ */
 $is_logged_in = isset($_SESSION['user_id']);
-// Zjistíme, jestli je admin
+/**
+ * @var bool $is_admin Informace o tom, zda je uživatel administrátor.
+ */
 $is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 
-$profile_image_path = 'profile-picture-default.jpg'; 
+/**
+ * @var string $profile_image_path Cesta k profilové fotce uživatele.
+ * Pokud není nastavena, použije se výchozí obrázek.
+ */
+$profile_image_path = 'profile-picture-default.jpg';
+/**
+ * @var string $display_name Jméno uživatele zobrazené v hlavičce.
+ * Pokud není nastavena hodnota, použije se výchozí text "Profil".
+ */
 $display_name = 'Profil'; 
 
+/**
+ * Načtení dat přihlášeného uživatele z databáze.
+ * Pokud je uživatel přihlášen, načtou se jeho jméno a cesta k profilové fotce.
+ */
 if ($is_logged_in) {
-    include 'conn.php'; 
+    include 'conn.php'; // Připojení k databázi
+    /**
+     * @var int $user_id ID přihlášeného uživatele.
+     */
     $user_id = $_SESSION['user_id'];
     
+    // Příprava SQL dotazu pro načtení uživatelských dat
     $stmt = $conn->prepare("SELECT jmeno, profilovka_cesta FROM users WHERE id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
+
+    /**
+     * @var array|null $user_data Pole obsahující informace o uživateli.
+     * Pokud uživatel není nalezen, hodnota je null.
+     */
     $user_data = $result->fetch_assoc();
     
+    // Nastavení profilové fotky a zobrazení jména
     if ($user_data) {
         if (!empty($user_data['profilovka_cesta'])) {
             $profile_image_path = htmlspecialchars($user_data['profilovka_cesta']);

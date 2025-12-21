@@ -177,16 +177,16 @@
                 const birthdateValue = birthdate.value;
 
                 // Validate first name length
-                if (fnameValue.length < 3) {
-                    alert("Jméno musí mít alespoň 3 znaky.");
+                if (fnameValue.length < 3 || fnameValue.length > 40) {
+                    alert("Jméno musí mít alespoň 3 znaky a méně jak 40.");
                     fname.style.border = "solid red 3px";
                     event.preventDefault();
                     return;
                 }
 
                 // Validate last name length
-                if (lnameValue.length < 3) {
-                    alert("Příjmení musí mít alespoň 3 znaky.");
+                if (lnameValue.length < 3 || lnameValue.length > 40) {
+                    alert("Příjmení musí mít alespoň 3 znaky a méně jak 40.");
                     lname.style.border = "solid red 3px";
                     event.preventDefault();
                     return;

@@ -16,8 +16,10 @@
 
 <body id="kontakty-body">
   <div id="header-placeholder"></div>
-  <section class="hero-kontakty">
+  
+  <div class="hero-kontakty">
     <div class="background-image"></div>
+    
     <main id="kontakty-page">
         <div id="kontakty-content">
           <section id="kontakty-mapa">
@@ -42,9 +44,7 @@
             </div>
           </section>
         </div>
-      </section>
-      </main>
-    <?php include 'footer.html'; ?>
+    </main> </div> <?php include 'footer.html'; ?>
   <script src="menu.js"></script>
 </body>
 </html>

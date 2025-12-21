@@ -1,20 +1,46 @@
 <?php
-// Načítání obrázků pro sekci Galerie na hlavní stránce
-// POZOR: thumbnail.php MUSÍ umět pracovat s parametrem dir=index (to už máme hotové z minula)
+/**
+ * @file index.php
+ * Hlavní stránka webu.
+ * Tento soubor obsahuje logiku pro načítání obrázků do sekce Galerie
+ * a jejich zobrazení na hlavní stránce.
+ */
+
+/**
+ * @var string $dir Cesta ke složce s obrázky pro galerii.
+ */
 $dir = "uploads/index/";
+/**
+ * @var array $index_images Pole obsahující názvy obrázků načtených ze složky.
+ * Obrázky jsou filtrovány podle přípon .jpg, .jpeg, nebo .png.
+ */
 $index_images = [];
 
+/**
+ * Kontrola, zda složka s obrázky existuje.
+ * Pokud složka existuje, načtou se všechny soubory ve složce.
+ * 
+ * @return void
+ */
 if (is_dir($dir)) {
-    $scan = scandir($dir);
+    $scan = scandir($dir); // Načtení obsahu složky
+    /**
+     * Procházení všech souborů ve složce a filtrování pouze obrázků.
+     * Obrázky jsou přidány do pole $index_images.
+     */
     foreach ($scan as $file) {
-        // Filtrujeme jen obrázky
         if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png)$/i', $file)) {
             $index_images[] = $file;
         }
     }
 }
 
-// Vezmeme jen první 4 obrázky pro galerii dole
+/**
+ * Výběr prvních čtyř obrázků pro zobrazení v galerii.
+ * Pokud je ve složce více obrázků, zobrazí se pouze první čtyři.
+ * 
+ * @var array $index_images Aktualizované pole obsahující maximálně 4 obrázky.
+ */
 $index_images = array_slice($index_images, 0, 4);
 ?>
 <!DOCTYPE html>
@@ -80,19 +106,6 @@ $index_images = array_slice($index_images, 0, 4);
     </section>
   <?php include 'footer.html'; ?>
   </div> 
-  <script>
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            }
-        });
-    }, {
-        threshold: 0.1
-    });
-    const hiddenElements = document.querySelectorAll('.reveal');
-    hiddenElements.forEach((el) => observer.observe(el));
-  </script>
   <script src="menu.js"></script>
 </body>
 </html>

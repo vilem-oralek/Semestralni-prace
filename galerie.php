@@ -1,11 +1,34 @@
 <?php
-// Nastavení složky s obrázky
+/**
+ * @file galerie.php
+ * Stránka galerie pro zobrazení obrázků z dané složky s podporou stránkování.
+ * Tento soubor načítá obrázky ze složky, filtruje je podle přípon a zobrazuje
+ * je na stránce s možností přecházení mezi stránkami.
+ */
+
+ /**
+ * @var string $dir Cesta ke složce s obrázky pro galerii.
+ */
 $dir = "uploads/Galerie/";
 
-// Získání všech souborů ze složky
+/**
+ * @var array $files Pole obsahující názvy všech obrázků načtených ze složky.
+ */
 $files = [];
+
+/**
+ * Kontrola, zda složka s obrázky existuje.
+ * Pokud složka existuje, načtou se všechny soubory ve složce.
+ * 
+ * @return void
+ */
 if (is_dir($dir)) {
-    $scan = scandir($dir);
+    $scan = scandir($dir); // Načtení obsahu složky
+
+    /**
+     * Procházení všech souborů ve složce a filtrování pouze obrázků.
+     * Obrázky jsou přidány do pole $files.
+     */
     foreach ($scan as $file) {
         // Filtrujeme jen obrázky (jpg, png) a ignorujeme tečky
         if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png)$/i', $file)) {
@@ -14,21 +37,38 @@ if (is_dir($dir)) {
     }
 }
 
-// LOGIKA STRÁNKOVÁNÍ
-// Necháme 8, to je dobré číslo (na desktopu 2 řádky po 4, na tabletu 4 řádky po 2)
+/**
+ * @var int $total_files Celkový počet obrázků ve složce.
+ */
 $total_files = count($files);
-$per_page = 8; 
+/**
+ * @var int $per_page Počet obrázků zobrazených na jedné stránce.
+ */
+$per_page = 8;
+
+/**
+ * @var int $total_pages Celkový počet stránek vypočítaný na základě počtu obrázků a počtu obrázků na stránku.
+ */
 $total_pages = ceil($total_files / $per_page);
 
-// Zjištění aktuální stránky
+/**
+ * Zjištění aktuální stránky z parametru GET.
+ * Pokud není stránka nastavena, použije se výchozí hodnota 1.
+ * 
+ * @var int $page Aktuální stránka.
+ */
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 if ($page > $total_pages && $total_pages > 0) $page = $total_pages;
 
-// Výpočet offsetu
+/**
+ * @var int $offset Výpočet offsetu pro načtení obrázků na aktuální stránku.
+ */
 $offset = ($page - 1) * $per_page;
 
-// Získání obrázků pro aktuální stránku
+/**
+ * @var array $files_on_page Pole obsahující obrázky pro aktuální stránku.
+ */
 $files_on_page = array_slice($files, $offset, $per_page);
 ?>
 <!DOCTYPE html>
@@ -65,7 +105,7 @@ $files_on_page = array_slice($files, $offset, $per_page);
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <p style="color: white;">Zatím zde nejsou žádné fotografie.</p>
+                    <p id = "p-text">Zatím zde nejsou žádné fotografie.</p>
                 <?php endif; ?>
             </div>
 

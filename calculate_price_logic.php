@@ -1,6 +1,19 @@
 <?php
-// Tento soubor obsahuje pouze logiku výpočtu, aby se dala použít na více místech
+/**
+ * @file calculate_price_logic.php
+ * Tento soubor obsahuje logiku pro výpočet celkové ceny rezervace a kontrolu dostupnosti termínu.
+ * Definované funkce mohou být volány z různých částí aplikace.
+ */
 
+ /**
+ * Vypočítá celkovou cenu rezervace na základě základní ceny a sezónních cen.
+ * 
+ * @param mysqli $conn Připojení k databázi.
+ * @param string $start_date Datum příjezdu ve formátu 'Y-m-d'.
+ * @param string $end_date Datum odjezdu ve formátu 'Y-m-d'.
+ * 
+ * @return float Celková cena rezervace.
+ */
 function calculateTotalPrice($conn, $start_date, $end_date) {
     // 1. Získání základní ceny
     $base_price_row = $conn->query("SELECT cena_za_noc FROM base_price LIMIT 1")->fetch_assoc();
@@ -38,7 +51,15 @@ function calculateTotalPrice($conn, $start_date, $end_date) {
     return $total_price;
 }
 
-// Funkce pro kontrolu dostupnosti
+/**
+ * Kontrola, zda je požadovaný termín dostupný.
+ * 
+ * @param mysqli $conn Připojení k databázi.
+ * @param string $start_date Datum příjezdu ve formátu 'Y-m-d'.
+ * @param string $end_date Datum odjezdu ve formátu 'Y-m-d'.
+ * 
+ * @return bool Vrací `true`, pokud je termín dostupný, jinak `false`.
+ */
 function isTermAvailable($conn, $start_date, $end_date) {
     // Hledáme rezervaci, která se překrývá s požadovaným termínem
     // Logika: (NovýZačátek < ExistujícíKonec) A (NovýKonec > ExistujícíZačátek)
