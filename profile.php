@@ -20,7 +20,7 @@ if ($result->num_rows == 1) {
     $user = $result->fetch_assoc();
 }
 
-// Pokud uživatel nebyl nalezen (i když je přihlášen, což by nemělo), odhlásit
+// Pokud uživatel nebyl nalezen
 if (!$user) {
     session_unset();
     session_destroy();
@@ -28,7 +28,6 @@ if (!$user) {
     exit;
 }
 
-// Zde se definuje, jaký obrázek se má zobrazit
 $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-picture-default.jpg');
 ?>
 <!DOCTYPE html>
@@ -36,7 +35,7 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> 
     <title>Můj Profil</title>
     <script>
       fetch("header.php")
@@ -58,16 +57,16 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
         
         <div id="display-view">
           <ul>
-            <li>Jméno: <span id="user-first-name"><?php echo htmlspecialchars($user['jmeno'] ?? 'N/A'); ?></span></li>
-            <li>Příjmení: <span id="user-last-name"><?php echo htmlspecialchars($user['prijmeni'] ?? 'N/A'); ?></span></li>
-            <li>E-mail: <span id="user-email"><?php echo htmlspecialchars($user['email'] ?? 'N/A'); ?></span></li>
-            <li>Telefon: <span id="user-phone"><?php echo htmlspecialchars($user['telefon'] ?? 'N/A'); ?></span></li>
-            <li>Datum narození: <span id="user-birthdate"><?php echo htmlspecialchars($user['datum_narozeni'] ?? 'N/A'); ?></span></li>
+            <li>Jméno: <span><?php echo htmlspecialchars($user['jmeno'] ?? 'N/A'); ?></span></li>
+            <li>Příjmení: <span><?php echo htmlspecialchars($user['prijmeni'] ?? 'N/A'); ?></span></li>
+            <li>E-mail: <span><?php echo htmlspecialchars($user['email'] ?? 'N/A'); ?></span></li>
+            <li>Telefon: <span><?php echo htmlspecialchars($user['telefon'] ?? 'N/A'); ?></span></li>
+            <li>Datum narození: <span><?php echo htmlspecialchars($user['datum_narozeni'] ?? 'N/A'); ?></span></li>
           </ul>
           <button type="button" class="edit-profile-button" id="editProfileButton">Upravit údaje</button>
         </div>
 
-        <div id="edit-view" id = "display-profile">
+        <div id="edit-view" style="display:none;">
           <form id="profile-edit-form" method="post" action="update_profile.php">
             
             <div class="form-group-edit">
@@ -115,7 +114,6 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
         <h2>Moje rezervace</h2>
         <ul id="reservations-list">
           <?php
-             // Načtení rezervací uživatele
              $res_stmt = $conn->prepare("SELECT * FROM reservations WHERE user_id = ? ORDER BY datum_prijezdu DESC");
              $res_stmt->bind_param("i", $user_id);
              $res_stmt->execute();
@@ -141,30 +139,27 @@ $profile_image_path = htmlspecialchars($user['profilovka_cesta'] ?? 'profile-pic
     </div>
   </section>
   <?php include 'footer.html'; ?>
+  
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-    const displayView = document.getElementById('display-view');
-    const editView = document.getElementById('edit-view');
-    const editProfileButton = document.getElementById('editProfileButton');
-    const cancelEditButton = document.getElementById('cancelEditButton');
+        const displayView = document.getElementById('display-view');
+        const editView = document.getElementById('edit-view');
+        const editProfileButton = document.getElementById('editProfileButton');
+        const cancelEditButton = document.getElementById('cancelEditButton');
 
-    // Function to toggle between display and edit modes
-    function toggleEditMode() {
-        if (displayView.style.display !== 'none') {
-            // Switch to edit mode
+        function showEditMode() {
             displayView.style.display = 'none';
-            editView.style.display = 'block';
-        } else {
-            // Switch back to display mode
+            editView.style.display = 'flex'; 
+        }
+
+        function showDisplayMode() {
             editView.style.display = 'none';
             displayView.style.display = 'block';
         }
-    }
 
-    // Attach event listeners to the buttons
-    editProfileButton.addEventListener('click', toggleEditMode);
-    cancelEditButton.addEventListener('click', toggleEditMode);
-});
+        if(editProfileButton) editProfileButton.addEventListener('click', showEditMode);
+        if(cancelEditButton) cancelEditButton.addEventListener('click', showDisplayMode);
+    });
   </script>
   <script src="menu.js"></script>
 </body>

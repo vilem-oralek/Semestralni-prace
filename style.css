@@ -1168,7 +1168,16 @@ button[type="submit"]:disabled {
   overflow-y: auto;
 }
 
+/* ********************************************************************************************* */
+/* ********************************** PROFIL EDITACE CSS  *************************** */
+/* ********************************************************************************************* */
 
+.profile-details #edit-view {
+  width: 100%;
+  display: none; 
+  justify-content: center;
+  align-items: center;
+}
 .profile-details {
   margin-bottom: 30px;
   width: 100%;
