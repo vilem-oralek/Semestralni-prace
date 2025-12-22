@@ -52,60 +52,46 @@ $is_admin = $header_info['is_admin'];
 $profile_image_path = $header_info['profile_image_path'];
 $display_name = $header_info['display_name'];
 ?>
-<!DOCTYPE html>
-<html>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chata</title>
-    <link rel="stylesheet" href="style.css">
-    </head>
-    <body id="headerBody">
-      <header class="navbar" id="headernav">
-        <div class="logo">
-          <a href="index.php">Chata</a>
-        </div>
-    
-        <div class="menu-toggle" id="menuToggle">☰</div>
-    
-        <nav class="nav-menu" id="navMenu">
-          <ul>
-            <li><a href="galerie.php">Galerie</a></li>
-            <li><a href="rezervace.php">Rezervace</a></li>
-            
-            <?php if ($is_admin): ?>
-                <li><a href="admin.php" id="admin-panel">Admin Panel</a></li>
-            <?php endif; ?>
-            
-            <li><a href="kontakty.php">Kontakt</a></li>
-          </ul>
-        </nav>
-    
-        <div class="user-controls">
-          <div class="user-dropdown">
-            <div class="username"><?php echo $display_name; ?></div>
-            <div class="dropdown-content">
-              <?php if ($is_logged_in): ?>
-                <a href="profile.php">Profil</a>
-                <?php if ($is_admin): ?>
-                    <a href="admin.php">Admin Panel</a>
-                <?php endif; ?>
-                <a href="logout.php">Odhlásit se</a>
-              <?php else: ?>
-                <a href="login.html">Přihlásit se</a> <a href="registration.html">Registrovat</a> <?php endif; ?>
-            </div>
-          </div>
-          <div class="user-photo-dropdown">
-            <img src="<?php echo $profile_image_path; ?>" alt="Profilová fotka" class="user-photo" id="userPhoto">
-            <div class="dropdown-content">
-              <?php if ($is_logged_in): ?>
-                <a href="profile.php">Profil</a>
-                <a href="logout.php">Odhlásit se</a>
-              <?php else: ?>
-                <a href="login.html">Přihlásit se</a> <a href="registration.html">Registrovat</a> <?php endif; ?>
-            </div>
-          </div>
-        </div>
-      </header>
-    </body>
-</html>
+<header class="navbar" id="headernav">
+  <div class="logo">
+    <a href="index.php">Chata</a>
+  </div>
+  <div class="menu-toggle" id="menuToggle">☰</div>
+  <nav class="nav-menu" id="navMenu">
+    <ul>
+      <li><a href="galerie.php">Galerie</a></li>
+      <li><a href="rezervace.php">Rezervace</a></li>
+      
+      <?php if ($is_admin): ?>
+          <li><a href="admin.php" id="admin-panel">Admin Panel</a></li>
+      <?php endif; ?>
+      
+      <li><a href="kontakty.php">Kontakt</a></li>
+    </ul>
+  </nav>
+  <div class="user-controls">
+    <div class="user-dropdown">
+      <div class="username"><?php echo $display_name; ?></div>
+      <div class="dropdown-content">
+        <?php if ($is_logged_in): ?>
+          <a href="profile.php">Profil</a>
+          <?php if ($is_admin): ?>
+              <a href="admin.php">Admin Panel</a>
+          <?php endif; ?>
+          <a href="logout.php">Odhlásit se</a>
+        <?php else: ?>
+          <a href="login.html">Přihlásit se</a> <a href="registration.html">Registrovat</a> <?php endif; ?>
+      </div>
+    </div>
+    <div class="user-photo-dropdown">
+      <img src="<?php echo $profile_image_path; ?>" alt="Profilová fotka" class="user-photo" id="userPhoto">
+      <div class="dropdown-content">
+        <?php if ($is_logged_in): ?>
+          <a href="profile.php">Profil</a>
+          <a href="logout.php">Odhlásit se</a>
+        <?php else: ?>
+          <a href="login.html">Přihlásit se</a> <a href="registration.html">Registrovat</a> <?php endif; ?>
+      </div>
+    </div>
+  </div>
+</header>

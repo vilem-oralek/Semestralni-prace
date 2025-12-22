@@ -1,22 +1,31 @@
-// Function to toggle the navigation menu
-function toggleMenu() {
-    const navMenu = document.getElementById("navMenu");
-    navMenu.classList.toggle("active");
-}
+document.addEventListener('click', function(e) {
 
-// Function to toggle dropdown menus
-function toggleDropdown() {
-    const dropdowns = document.querySelectorAll('.dropdown-content');
-    dropdowns.forEach(menu => menu.classList.toggle('active'));
-}
+    // --- 1. Mobilní menu (Hamburger) ---
+    // Hledáme, zda kliknutí bylo na element #menuToggle nebo uvnitř něj
+    const menuToggle = e.target.closest('#menuToggle');
+    if (menuToggle) {
+        const navMenu = document.getElementById("navMenu");
+        if (navMenu) {
+            navMenu.classList.toggle("active");
+        }
+    }
 
-// Add event listeners to trigger the existing functions
-document.addEventListener("DOMContentLoaded", function () {
-    // Attach toggleMenu to the menu toggle button
-    const menuToggle = document.getElementById("menuToggle");
-    menuToggle.addEventListener("click", toggleMenu);
+    // --- 2. Profilové menu (Dropdown) ---
+    // Hledáme, zda kliknutí bylo na #userPhoto
+    const userPhoto = e.target.closest('#userPhoto');
+    if (userPhoto) {
+        // Najdeme všechny dropdowny a přepneme jim třídu active
+        const dropdowns = document.querySelectorAll('.dropdown-content');
+        dropdowns.forEach(menu => menu.classList.toggle('active'));
 
-    // Attach toggleDropdown to the user photo or dropdown trigger
-    const userPhoto = document.getElementById("userPhoto");
-    userPhoto.addEventListener("click", toggleDropdown);
+        // Zabráníme, aby se dropdown hned zase zavřel (viz níže)
+        e.stopPropagation();
+    }
+
+    // --- 3. Zavření dropdownu při kliknutí jinam ---
+    // Pokud kliknutí nebylo uvnitř user-controls, zavřeme dropdowny
+    if (!e.target.closest('.user-controls')) {
+        const dropdowns = document.querySelectorAll('.dropdown-content');
+        dropdowns.forEach(menu => menu.classList.remove('active'));
+    }
 });
