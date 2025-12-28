@@ -1380,6 +1380,11 @@ button[type="submit"]:disabled {
   display:flex;
 }
 
+.admin-edit-container {
+    display: block;
+    width: 100%;
+}
+
 #admin-tr{
   text-align: center;
   padding: 20px;

@@ -2,24 +2,23 @@
 /**
  * @file admin_edit_user.php
  * Stránka pro úpravu uživatelských údajů administrátorem.
- * Tento soubor umožňuje administrátorovi zobrazit a upravit údaje konkrétního uživatele.
  */
-
 
 /**
  * Inicializuje session a připojení k databázi.
  * @return mysqli $conn Připojení k databázi
  */
 function init_connection() {
-  session_start();
-  include 'conn.php'; // Připojení k databázi
+  // Kontrola, zda session už neběží, aby nedošlo k chybě
+  if (session_status() === PHP_SESSION_NONE) {
+      session_start();
+  }
+  include 'conn.php'; 
   return $conn;
 }
 
 /**
  * Zabezpečí přístup pouze pro administrátory.
- * Přesměruje na login, pokud není admin.
- * @return void
  */
 function require_admin() {
   if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
@@ -30,8 +29,6 @@ function require_admin() {
 
 /**
  * Načte uživatele k editaci podle ID z GET.
- * @param mysqli $conn
- * @return array|null
  */
 function get_user_to_edit($conn) {
   if (isset($_GET['id'])) {
@@ -46,8 +43,6 @@ function get_user_to_edit($conn) {
 
 /**
  * Zpracuje POST požadavek na úpravu uživatele.
- * @param mysqli $conn
- * @return void
  */
 function handle_edit_user_post($conn) {
   if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['user_id'])) {
@@ -57,10 +52,13 @@ function handle_edit_user_post($conn) {
     $email = $_POST['email'];
     $telefon = $_POST['telefon'];
     $datum_narozeni = $_POST['datum_narozeni'];
+    
     $stmt = $conn->prepare("UPDATE users SET jmeno=?, prijmeni=?, email=?, telefon=?, datum_narozeni=? WHERE id=?");
     $stmt->bind_param("sssssi", $jmeno, $prijmeni, $email, $telefon, $datum_narozeni, $id);
+    
     if ($stmt->execute()) {
-      echo "<script>alert('Uživatel byl upraven.'); window.location.href='admin.php';</script>";
+      // Přesměrování zpět na tabulku uživatelů v adminu
+      echo "<script>alert('Uživatel byl upraven.'); window.location.href='admin.php?tab=users';</script>";
       exit;
     } else {
       echo "<script>alert('Chyba při úpravě.');</script>";
@@ -69,9 +67,7 @@ function handle_edit_user_post($conn) {
 }
 
 /**
- * Pokud uživatel neexistuje, ukončí skript s chybou.
- * @param array|null $user_to_edit
- * @return void
+ * Pokud uživatel neexistuje, ukončí skript.
  */
 function require_user_exists($user_to_edit) {
   if (!$user_to_edit) {
@@ -80,6 +76,7 @@ function require_user_exists($user_to_edit) {
   }
 }
 
+// --- HLAVNÍ LOGIKA ---
 $conn = init_connection();
 require_admin();
 handle_edit_user_post($conn);
@@ -93,14 +90,21 @@ require_user_exists($user_to_edit);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editace Uživatele - Admin</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
+    <script>
+      fetch("header.php").then(r => r.text()).then(d => document.getElementById("header-placeholder").innerHTML = d);
+    </script>
 </head>
 <body>
+    <div id="header-placeholder"></div>
+    <div class="background-image"></div>
+
     <section class="profile-hero">
-        <main id="profile-container"> <h1 class="profile-title">Editace Uživatele (Admin)</h1>
+        <main id="profile-container"> 
+            <h1 class="profile-title">Editace Uživatele (Admin)</h1>
             
             <div class="profile-details">
-                <div id="edit-view" id="view-edit-admin">
+                <div class="admin-edit-container">
                   <form id="profile-edit-form" method="post" action="admin_edit_user.php">
                     <input type="hidden" name="user_id" value="<?php echo $user_to_edit['id']; ?>">
                     
@@ -129,12 +133,17 @@ require_user_exists($user_to_edit);
                       <input type="date" name="datum_narozeni" value="<?php echo htmlspecialchars($user_to_edit['datum_narozeni']); ?>" required>
                     </div>
                     
-                    <button type="submit" class="save-profile-button">Uložit změny</button>
-                    <a href="admin.php" class="cancel-profile-button" id = "zrusit-admin">Zrušit</a>
+                    <div class="form-actions">
+                        <button type="submit" class="save-profile-button">Uložit změny</button>
+                        <a href="admin.php?tab=users" class="cancel-profile-button">Zrušit</a>
+                    </div>
                   </form>
                 </div>
             </div>
         </main>
     </section>
+
+    <?php include 'footer.html'; ?>
+    <script src="menu.js"></script>
 </body>
 </html>
