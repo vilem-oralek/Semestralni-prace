@@ -1,13 +1,7 @@
 <?php
-
 session_start();
 include 'conn.php';
 
-/**
- * Zabezpečení přístupu pro administrátora.
- * Přesměruje na login, pokud není admin.
- * @return void
- */
 function require_admin_access() {
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
         header("Location: login.html");
@@ -15,61 +9,33 @@ function require_admin_access() {
     }
 }
 
-/**
- * Zpracuje akce uživatele (mazání, změna role).
- * @param mysqli $conn
- * @return void
- */
 function handle_user_action($conn) {
     if (isset($_GET['action']) && isset($_GET['id'])) {
         $action_id = intval($_GET['id']);
-        // Ochrana: Admin nemůže smazat/upravit roli sám sobě
         if ($action_id == $_SESSION['user_id']) {
-            echo "<!DOCTYPE html><html lang='cs'><head><meta charset='UTF-8'><title>Chyba</title></head><body><script>alert('Nemůžete smazat nebo změnit roli u vlastního účtu!'); window.location.href='admin.php';</script></body></html>";
+            echo "<script>alert('Nemůžete smazat nebo změnit roli u vlastního účtu!'); window.location.href='admin.php';</script>";
             exit;
         }
         if ($_GET['action'] == 'delete') {
-            $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-            $stmt->bind_param("i", $action_id);
-            $stmt->execute();
+            $conn->query("DELETE FROM users WHERE id = $action_id");
             header("Location: admin.php?tab=users&msg=deleted");
             exit;
         } elseif ($_GET['action'] == 'toggle_role') {
-            $stmt = $conn->prepare("SELECT role FROM users WHERE id = ?");
-            $stmt->bind_param("i", $action_id);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            if ($res->num_rows > 0) {
-                $curr_user = $res->fetch_assoc();
-                $new_role = ($curr_user['role'] == 'admin') ? 'user' : 'admin';
-                $update = $conn->prepare("UPDATE users SET role = ? WHERE id = ?");
-                $update->bind_param("si", $new_role, $action_id);
-                $update->execute();
-            }
+            $conn->query("UPDATE users SET role = IF(role='admin','user','admin') WHERE id = $action_id");
             header("Location: admin.php?tab=users&msg=role_changed");
             exit;
         }
     }
 }
 
-/**
- * Vrátí zprávu pro administrátora na základě parametru v URL.
- * @return string
- */
 function get_admin_message() {
-    $msg = "";
     if(isset($_GET['msg'])) {
-        if($_GET['msg'] == 'deleted') $msg = "Uživatel byl smazán.";
-        if($_GET['msg'] == 'role_changed') $msg = "Role uživatele byla změněna.";
+        if($_GET['msg'] == 'deleted') return "Uživatel smazán.";
+        if($_GET['msg'] == 'role_changed') return "Role uživatele byla změněna.";
     }
-    return $msg;
+    return "";
 }
 
-/**
- * Zpracuje formuláře pro základní cenu a sezónu.
- * @param mysqli $conn
- * @return string Zpráva o výsledku
- */
 function handle_forms($conn) {
     $msg = "";
     if (isset($_POST['update_base_price'])) {
@@ -78,26 +44,18 @@ function handle_forms($conn) {
         $msg = "Základní cena aktualizována.";
     }
     if (isset($_POST['add_season'])) {
-        $nazev = $_POST['nazev'];
-        $od = $_POST['datum_od'];
-        $do = $_POST['datum_do'];
-        $cena = $_POST['cena'];
         $stmt = $conn->prepare("INSERT INTO season_prices (nazev, datum_od, datum_do, cena_za_noc) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("sssd", $nazev, $od, $do, $cena);
+        $stmt->bind_param("sssd", $_POST['nazev'], $_POST['datum_od'], $_POST['datum_do'], $_POST['cena']);
         $stmt->execute();
         $msg = "Sezóna přidána.";
     }
     if (isset($_GET['delete_season'])) {
-        $id = intval($_GET['delete_season']);
-        $conn->query("DELETE FROM season_prices WHERE id = $id");
-        header("Location: admin.php?tab=ceny");
-        exit;
+        $conn->query("DELETE FROM season_prices WHERE id = ".intval($_GET['delete_season']));
+        header("Location: admin.php?tab=ceny"); exit;
     }
     if (isset($_GET['delete_res'])) {
-        $id = intval($_GET['delete_res']);
-        $conn->query("DELETE FROM reservations WHERE id = $id");
-        header("Location: admin.php?tab=rezervace");
-        exit;
+        $conn->query("DELETE FROM reservations WHERE id = ".intval($_GET['delete_res']));
+        header("Location: admin.php?tab=rezervace"); exit;
     }
     return $msg;
 }
@@ -108,26 +66,28 @@ $msg = get_admin_message();
 $msg2 = handle_forms($conn);
 if ($msg2) $msg = $msg2;
 
-// Stránkování
+// Data uživatelů - stránkování
 $limit = 5; 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
 
-$count_res = $conn->query("SELECT COUNT(*) as total FROM users");
-$total_users = $count_res->fetch_assoc()['total'];
+$total_users = $conn->query("SELECT COUNT(*) as total FROM users")->fetch_assoc()['total'];
 $total_pages = ceil($total_users / $limit);
+$users_res = $conn->query("SELECT * FROM users LIMIT $limit OFFSET $offset");
 
-$stmt_users = $conn->prepare("SELECT * FROM users LIMIT ? OFFSET ?");
-$stmt_users->bind_param("ii", $limit, $offset);
-$stmt_users->execute();
-$users_res = $stmt_users->get_result();
-
-// Rezervace (používáme LEFT JOIN, aby se zobrazily i rezervace smazaných uživatelů)
+// Rezervace
 $reservations_res = $conn->query("SELECT r.*, u.email as user_email FROM reservations r LEFT JOIN users u ON r.user_id = u.id ORDER BY r.datum_prijezdu ASC");
 
-$base_price_row = $conn->query("SELECT cena_za_noc FROM base_price LIMIT 1");
-$base_price_val = ($base_price_row && $base_price_row->num_rows > 0) ? $base_price_row->fetch_assoc()['cena_za_noc'] : 0;
+// Data pro kalendář (všechny rezervace)
+$occupied_dates = [];
+$cal_res = $conn->query("SELECT datum_prijezdu, datum_odjezdu FROM reservations");
+while ($r = $cal_res->fetch_assoc()) {
+    $occupied_dates[] = $r;
+}
+
+// Ceny
+$base_price_val = $conn->query("SELECT cena_za_noc FROM base_price LIMIT 1")->fetch_assoc()['cena_za_noc'] ?? 0;
 $seasons_res = $conn->query("SELECT * FROM season_prices ORDER BY datum_od ASC");
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
 ?>
@@ -135,7 +95,6 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
     <script>
@@ -149,12 +108,12 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
     <section class="admin-hero">
         <main id="admin-container">
             <h1 class="admin-title">Admin Panel</h1>
-
             <?php if($msg): ?><div class="msg-box"><?php echo $msg; ?></div><?php endif; ?>
 
             <div class="admin-tabs">
                 <a href="?tab=users" class="tab-button <?php echo $active_tab=='users'?'active':''; ?>">Uživatelé</a>
                 <a href="?tab=rezervace" class="tab-button <?php echo $active_tab=='rezervace'?'active':''; ?>">Rezervace</a>
+                <a href="?tab=calendar" class="tab-button <?php echo $active_tab=='calendar'?'active':''; ?>">Kalendář</a>
                 <a href="?tab=ceny" class="tab-button <?php echo $active_tab=='ceny'?'active':''; ?>">Ceník</a>
             </div>
 
@@ -172,24 +131,26 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                                 <td><span class="badge <?php echo $u['role']=='admin'?'badge-admin':'badge-user'; ?>"><?php echo $u['role']; ?></span></td>
                                 <td class="actions-cell">
                                     <a href="admin_edit_user.php?id=<?php echo $u['id']; ?>" class="btn-action btn-edit">Upravit</a>
+                                    
                                     <a href="admin.php?action=toggle_role&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-role">
                                         <?php echo $u['role'] == 'admin' ? '⬇ User' : '⬆ Admin'; ?>
                                     </a>
-                                    <a href="admin.php?action=delete&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-delete" data-confirm="Opravdu smazat uživatele?">Smazat</a>
+                                    
+                                    <a href="admin.php?action=delete&id=<?php echo $u['id']; ?>&tab=users&page=<?php echo $page; ?>" class="btn-action btn-delete" onclick="return confirm('Opravdu smazat uživatele?');">Smazat</a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
-
+                
                 <div class="pagination">
                     <?php if($page > 1): ?>
                         <a href="admin.php?tab=users&page=<?php echo $page-1; ?>">&laquo; Předchozí</a>
                     <?php endif; ?>
-                    <?php for($i=1; $i<=$total_pages; $i++): ?>
-                        <a href="admin.php?tab=users&page=<?php echo $i; ?>" class="<?php echo ($i == $page) ? 'active' : ''; ?>"><?php echo $i; ?></a>
-                    <?php endfor; ?>
+                    
+                    <span>Strana <?php echo $page; ?> z <?php echo $total_pages; ?></span>
+                    
                     <?php if($page < $total_pages): ?>
                         <a href="admin.php?tab=users&page=<?php echo $page+1; ?>">Další &raquo;</a>
                     <?php endif; ?>
@@ -197,35 +158,34 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
             </div>
 
             <div id="reservations-tab" class="tab-content <?php echo $active_tab=='rezervace'?'active':''; ?>">
-                <h2>Všechny Rezervace</h2>
+                <h2>Seznam Rezervací</h2>
                 <div class="table-responsive">
                     <table class="admin-table">
-                        <thead><tr><th>ID</th><th>Host</th><th>Kontakt</th><th>Od - Do</th><th>Cena</th><th>Poznámka</th><th>Akce</th></tr></thead>
+                        <thead><tr><th>ID</th><th>Host</th><th>Kontakt</th><th>Termín</th><th>Cena</th><th>Akce</th></tr></thead>
                         <tbody>
-                            <?php if ($reservations_res->num_rows > 0): ?>
-                                <?php while($r = $reservations_res->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?php echo $r['id']; ?></td>
-                                    <td><?php echo htmlspecialchars($r['jmeno'].' '.$r['prijmeni']); ?></td>
-                                    <td><?php echo htmlspecialchars($r['email']); ?><br><small><?php echo htmlspecialchars($r['telefon']); ?></small></td>
-                                    <td><?php echo date('d.m.Y', strtotime($r['datum_prijezdu'])).' - '.date('d.m.Y', strtotime($r['datum_odjezdu'])); ?></td>
-                                    <td><strong><?php echo number_format($r['celkova_cena'], 0, ',', ' '); ?> Kč</strong></td>
-                                    <td><?php echo htmlspecialchars($r['poznamka']); ?></td>
-                                    <td>
-                                        <a href="admin.php?delete_res=<?php echo $r['id']; ?>&tab=rezervace" class="btn-action btn-delete" data-confirm="Opravdu smazat tuto rezervaci?">Storno</a>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr><td colspan="7" style="text-align:center; padding:20px;">Žádné rezervace nebyly nalezeny.</td></tr>
-                            <?php endif; ?>
+                            <?php while($r = $reservations_res->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo $r['id']; ?></td>
+                                <td><?php echo htmlspecialchars($r['jmeno'].' '.$r['prijmeni']); ?></td>
+                                <td><?php echo htmlspecialchars($r['email']); ?><br><small><?php echo htmlspecialchars($r['telefon']); ?></small></td>
+                                <td><?php echo date('d.m.Y', strtotime($r['datum_prijezdu'])).' - '.date('d.m.Y', strtotime($r['datum_odjezdu'])); ?></td>
+                                <td><?php echo number_format($r['celkova_cena'], 0, ',', ' '); ?> Kč</td>
+                                <td><a href="admin.php?delete_res=<?php echo $r['id']; ?>&tab=rezervace" class="btn-action btn-delete" onclick="return confirm('Opravdu stornovat rezervaci?');">Storno</a></td>
+                            </tr>
+                            <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
 
+            <div id="calendar-tab" class="tab-content <?php echo $active_tab=='calendar'?'active':''; ?>">
+                <h2>Obsazenost pokojů</h2>
+                <p>Červeně vyznačené dny jsou obsazené.</p>
+                <div class="calendar-wrapper" id="admin-calendar"></div>
+            </div>
+
             <div id="prices-tab" class="tab-content <?php echo $active_tab=='ceny'?'active':''; ?>">
-                <h2>Nastavení Cen</h2>
+                <h2>Ceník</h2>
                 <div class="price-settings-grid">
                     <div class="price-box">
                         <h3>Základní cena (mimo sezónu)</h3>
@@ -248,26 +208,99 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'users';
                         </form>
                     </div>
                 </div>
-
                 <h3>Aktivní sezóny</h3>
-                <table class="admin-table">
-                    <thead><tr><th>Název</th><th>Termín</th><th>Cena/noc</th><th>Akce</th></tr></thead>
-                    <tbody>
-                        <?php while($s = $seasons_res->fetch_assoc()): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($s['nazev']); ?></td>
-                            <td><?php echo date('d.m.Y', strtotime($s['datum_od'])).' - '.date('d.m.Y', strtotime($s['datum_do'])); ?></td>
-                            <td><?php echo number_format($s['cena_za_noc'], 0, ',', ' '); ?> Kč</td>
-                            <td><a href="admin.php?delete_season=<?php echo $s['id']; ?>&tab=ceny" class="btn-action btn-delete" data-confirm="Smazat sezónu?">Smazat</a></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead><tr><th>Název</th><th>Termín</th><th>Cena/noc</th><th>Akce</th></tr></thead>
+                        <tbody>
+                            <?php while($s = $seasons_res->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($s['nazev']); ?></td>
+                                <td><?php echo date('d.m.Y', strtotime($s['datum_od'])).' - '.date('d.m.Y', strtotime($s['datum_do'])); ?></td>
+                                <td><?php echo number_format($s['cena_za_noc'], 0, ',', ' '); ?> Kč</td>
+                                <td><a href="admin.php?delete_season=<?php echo $s['id']; ?>&tab=ceny" class="btn-action btn-delete" onclick="return confirm('Smazat sezónu?');">Smazat</a></td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </main>
     </section>
     <?php include 'footer.html'; ?>
     <script src="menu.js"></script>
+
+    <script>
+    const occupiedData = <?php echo json_encode($occupied_dates); ?>;
+    let currentDate = new Date();
+    const monthNames = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
+
+    function renderAdminCalendar(year, month) {
+        const container = document.getElementById('admin-calendar');
+        if(!container) return;
+        container.innerHTML = '';
+
+        const header = document.createElement('div');
+        header.className = 'calendar-header';
+        
+        const prev = document.createElement('button'); prev.innerText = "<";
+        prev.onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); renderAdminCalendar(currentDate.getFullYear(), currentDate.getMonth()); };
+        
+        const next = document.createElement('button'); next.innerText = ">";
+        next.onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); renderAdminCalendar(currentDate.getFullYear(), currentDate.getMonth()); };
+        
+        const title = document.createElement('span'); title.style.fontWeight = 'bold';
+        title.innerText = `${monthNames[month]} ${year}`;
+        
+        header.append(prev, title, next);
+        container.append(header);
+
+        const grid = document.createElement('div');
+        grid.className = 'calendar-grid';
+        
+        // Dny v týdnu
+        const daysCZ = ['Po','Út','St','Čt','Pá','So','Ne'];
+        daysCZ.forEach(d => {
+            const dn = document.createElement('div'); 
+            dn.className = 'calendar-day-name'; 
+            dn.innerText = d; 
+            grid.append(dn);
+        });
+
+        // Logika prvního dne a počtu dní
+        const firstDay = new Date(year, month, 1).getDay();
+        const startOffset = (firstDay === 0) ? 6 : firstDay - 1; // 0=Ne -> 6, 1=Po -> 0
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Prázdná políčka
+        for(let i=0; i<startOffset; i++) {
+            const e = document.createElement('div'); e.className = 'calendar-day empty'; grid.append(e);
+        }
+
+        // Dny v měsíci
+        for(let d=1; d<=daysInMonth; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            cell.innerText = d;
+
+            let isOccupied = false;
+            occupiedData.forEach(res => {
+                if (dateStr >= res.datum_prijezdu && dateStr < res.datum_odjezdu) isOccupied = true;
+            });
+            if(isOccupied) {
+                cell.classList.add('occupied');
+                cell.title = "Obsazeno";
+            }
+            grid.append(cell);
+        }
+        container.append(grid);
+    }
+
+    if(document.getElementById('admin-calendar')) {
+        renderAdminCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    }
+    </script>
 </body>
 </html>

@@ -1,38 +1,24 @@
 <?php
-/**
- * @file rezervace.php
- * Stránka pro vytvoření nové rezervace.
- * Tento soubor obsahuje logiku pro zpracování formuláře rezervace,
- * validaci vstupů a uložení rezervace do databáze.
- */
-
-
 session_start();
 include 'conn.php';
 include 'calculate_price_logic.php';
 
-/**
- * Vrátí předvyplněná data uživatele pro formulář rezervace.
- * @param mysqli $conn
- * @param int $user_id
- * @return array
- */
 function get_pre_data($conn, $user_id) {
     $stmt = $conn->prepare("SELECT jmeno, prijmeni, email, telefon FROM users WHERE id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $res = $stmt->get_result();
-    if ($res->num_rows > 0) {
-        return $res->fetch_assoc();
-    }
+    if ($res->num_rows > 0) return $res->fetch_assoc();
     return [];
 }
 
-/**
- * Zpracuje rezervaci, provede validace a uloží do DB.
- * @param mysqli $conn
- * @return void
- */
+// Načtení obsazených termínů pro kalendář
+$occupied_dates = [];
+$res_query = $conn->query("SELECT datum_prijezdu, datum_odjezdu FROM reservations");
+while ($row = $res_query->fetch_assoc()) {
+    $occupied_dates[] = $row;
+}
+
 function process_reservation($conn) {
     $is_logged_in = isset($_SESSION['user_id']);
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_logged_in) {
@@ -44,27 +30,8 @@ function process_reservation($conn) {
         $prijmeni = trim($_POST['prijmeni']);
         $email = trim($_POST['email']);
         $telefon = trim($_POST['telefon']);
-        $poznamka = htmlspecialchars($poznamka, ENT_QUOTES, 'UTF-8');
-        $jmeno = htmlspecialchars($jmeno, ENT_QUOTES, 'UTF-8');
-        $prijmeni = htmlspecialchars($prijmeni, ENT_QUOTES, 'UTF-8');
-        $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-        $telefon = htmlspecialchars($telefon, ENT_QUOTES, 'UTF-8');
-        if (strlen($poznamka) > 50) {
-            echo "<script>alert('Poznámka nesmí být delší než 50 znaků.'); window.history.back();</script>";
-            exit;
-        }
-        if (strlen($jmeno) < 3 || strlen($prijmeni) < 3) {
-            echo "<script>alert('Jméno a příjmení musí mít alespoň 3 znaky.'); window.history.back();</script>";
-            exit;
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo "<script>alert('Neplatný formát e-mailu.'); window.history.back();</script>";
-            exit;
-        }
-        if (!preg_match('/^\d{9}$/', $telefon)) {
-            echo "<script>alert('Telefonní číslo musí obsahovat přesně 9 číslic.'); window.history.back();</script>";
-            exit;
-        }
+
+        // Základní validace
         if ($start >= $end) {
             echo "<script>alert('Datum odjezdu musí být později než datum příjezdu.'); window.history.back();</script>";
             exit;
@@ -73,9 +40,11 @@ function process_reservation($conn) {
             echo "<script>alert('Chyba: Termín je již obsazen!'); window.location.href='rezervace.php';</script>";
             exit;
         }
+
         $final_price = calculateTotalPrice($conn, $start, $end);
         $stmt = $conn->prepare("INSERT INTO reservations (user_id, datum_prijezdu, datum_odjezdu, celkova_cena, poznamka, jmeno, prijmeni, email, telefon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("issdsssss", $user_id, $start, $end, $final_price, $poznamka, $jmeno, $prijmeni, $email, $telefon);
+        
         if ($stmt->execute()) {
             echo "<script>alert('Rezervace byla úspěšně vytvořena!'); window.location.href='profile.php';</script>";
             exit;
@@ -98,13 +67,9 @@ process_reservation($conn);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezervace</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
     <script>
-      fetch("header.php")
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById("header-placeholder").innerHTML = data;
-        });
+      fetch("header.php").then(r => r.text()).then(d => document.getElementById("header-placeholder").innerHTML = d);
     </script>
 </head>
 <body>
@@ -117,10 +82,20 @@ process_reservation($conn);
             <h2>Nová Rezervace</h2>
             
             <?php if ($is_logged_in): ?>
-                <p class="popis-text">Zkontrolujte údaje a vyberte termín.</p>
+                <p class="popis-text">Klikněte do kalendáře pro výběr data příjezdu a odjezdu.</p>
+
+
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 16px;">
+                    <button type="button" id="open-range-calendar" class="calendar-btn calendar-btn-big" style="margin: 0 auto;">Vyberte termín pobytu</button>
+                    <div id="range-label" class="calendar-range-label" style="margin-top: 8px;"></div>
+                </div>
+                                <div class="calendar-overlay" id="calendar-overlay" style="display:none;">
+                                    <div class="calendar-wrapper" id="booking-calendar"></div>
+                                </div>
 
                 <form id="rezervacni-formular" method="post" action="rezervace.php">
-                    
+                    <input type="hidden" id="datum_prijezdu" name="datum_prijezdu" required>
+                    <input type="hidden" id="datum_odjezdu" name="datum_odjezdu" required>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Jméno</label>
@@ -131,7 +106,6 @@ process_reservation($conn);
                             <input type="text" name="prijmeni" value="<?php echo htmlspecialchars($pre_data['prijmeni'] ?? ''); ?>" required>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label>Email</label>
@@ -143,25 +117,13 @@ process_reservation($conn);
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Datum příjezdu</label>
-                            <input type="date" id="datum_prijezdu" name="datum_prijezdu" required min="<?php echo date('Y-m-d'); ?>">
-                        </div>
-                        <div class="form-group">
-                            <label>Datum odjezdu</label>
-                            <input type="date" id="datum_odjezdu" name="datum_odjezdu" required min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
-                        </div>
-                    </div>
-
                     <div class="form-group">
-                        <label>Poznámka (volitelné, max. 50 znaků)</label>
+                        <label>Poznámka (volitelné)</label>
                         <textarea name="poznamka" placeholder="Např. přistýlka pro dítě..."></textarea>
                     </div>
 
                     <div id="price-result" class="price-result-box"></div>
-                    <div id="date-error" class="error-msg"></div>
-
+                    
                     <button type="submit" id="submit-btn" disabled>Vyberte termín</button>
                 </form>
 
@@ -174,224 +136,213 @@ process_reservation($conn);
         </div>
     </section>
     <?php include 'footer.html'; ?>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const startInput = document.getElementById('datum_prijezdu');
-            const endInput = document.getElementById('datum_odjezdu');
-            const nameInput = document.querySelector('input[name="jmeno"]');
-            const surnameInput = document.querySelector('input[name="prijmeni"]');
-            const emailInput = document.querySelector('input[name="email"]');
-            const phoneInput = document.querySelector('input[name="telefon"]');
-            const noteInput = document.querySelector('textarea[name="poznamka"]');
-            const priceDisplay = document.getElementById('price-result');
-            const errorDisplay = document.getElementById('date-error');
-            const submitBtn = document.getElementById('submit-btn');
-
-            // Validate name
-            nameInput.addEventListener("blur", function () {
-                const nameValue = nameInput.value.trim();
-                if (nameValue.length < 3 || nameValue.length > 40) {
-                    nameInput.style.border = "solid red 3px";
-                } else {
-                    nameInput.style.border = "solid black 1px";
-                }
-                validateForm();
-            });
-
-            // Validate surname
-            surnameInput.addEventListener("blur", function () {
-                const surnameValue = surnameInput.value.trim();
-                if (surnameValue.length < 3 || surnameValue.length > 40) {
-                    surnameInput.style.border = "solid red 3px";
-                } else {
-                    surnameInput.style.border = "solid black 1px";
-                }
-                validateForm();
-            });
-
-            // Validate email
-            emailInput.addEventListener("blur", function () {
-                const emailValue = emailInput.value.trim();
-                if (emailValue.length < 6 || !emailValue.includes("@")) {
-                    emailInput.style.border = "solid red 3px";
-                } else {
-                    emailInput.style.border = "solid black 1px";
-                }
-                validateForm();
-            });
-
-            // Validate phone number
-            phoneInput.addEventListener("blur", function () {
-                const phoneValue = phoneInput.value.trim();
-                if (!/^\d{9}$/.test(phoneValue)) {
-                    phoneInput.style.border = "solid red 3px";
-                } else {
-                    phoneInput.style.border = "solid black 1px";
-                }
-                validateForm();
-            });
-
-            // Validate "poznámka" length
-            noteInput.addEventListener("input", function () {
-                if (noteInput.value.length > 50) {
-                    noteInput.style.border = "solid red 3px";
-                } else {
-                    noteInput.style.border = "solid black 1px";
-                }
-            });
-
-            // Validate arrival and departure dates
-            function validateDates() {
-                const start = startInput.value;
-                const end = endInput.value;
-
-                if (!start) {
-                    startInput.style.border = "solid red 3px";
-                    errorDisplay.innerText = "Datum příjezdu je povinné.";
-                    errorDisplay.classList.add('active');
-                    submitBtn.disabled = true;
-                    return false;
-                } else {
-                    startInput.style.border = "solid black 1px";
-                }
-
-                if (!end) {
-                    endInput.style.border = "solid red 3px";
-                    errorDisplay.innerText = "Datum odjezdu je povinné.";
-                    errorDisplay.classList.add('active');
-                    submitBtn.disabled = true;
-                    return false;
-                } else {
-                    endInput.style.border = "solid black 1px";
-                }
-
-                if (start >= end) {
-                    errorDisplay.innerText = "Datum odjezdu musí být později než datum příjezdu.";
-                    errorDisplay.classList.add('active');
-                    startInput.style.border = "solid red 3px";
-                    endInput.style.border = "solid red 3px";
-                    submitBtn.disabled = true;
-                    return false;
-                } else {
-                    errorDisplay.classList.remove('active');
-                    startInput.style.border = "solid black 1px";
-                    endInput.style.border = "solid black 1px";
-                }
-
-                return true;
-            }
-
-            // Update the "min" attribute of the departure date based on the arrival date
-            startInput.addEventListener('change', function () {
-                const startDate = startInput.value;
-                if (startDate) {
-                    endInput.setAttribute('min', startDate);
-
-                    // Clear the departure date if it's earlier than the new arrival date
-                    if (endInput.value && endInput.value < startDate) {
-                        endInput.value = '';
-                        submitBtn.disabled = true;
-                        priceDisplay.classList.remove('active');
-                    }
-                }
-                validateDates();
-                validateForm();
-            });
-
-            // Validate departure date on change
-            endInput.addEventListener('change', function () {
-                validateDates();
-                validateForm();
-            });
-
-            // Check the price when both dates are valid
-            function checkPrice() {
-                if (validateDates()) {
-                    const start = startInput.value;
-                    const end = endInput.value;
-
-                    fetch(`get_price_api.php?start=${start}&end=${end}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.error) {
-                                errorDisplay.innerText = data.error;
-                                errorDisplay.classList.add('active');
-                                priceDisplay.classList.remove('active');
-                                submitBtn.disabled = true;
-                                submitBtn.innerText = "Termín obsazen";
-                            } else {
-                                errorDisplay.classList.remove('active');
-                                priceDisplay.innerHTML = `Počet nocí: ${data.nights}<br>Celková cena: ${data.price} Kč`;
-                                priceDisplay.classList.add('active');
-                                submitBtn.disabled = false;
-                                submitBtn.innerText = "Závazně rezervovat";
-                            }
-                        })
-                        .catch(err => console.error("Chyba:", err));
-                }
-            }
-
-            // Add event listeners to check the price when dates are selected
-            startInput.addEventListener('change', checkPrice);
-            endInput.addEventListener('change', checkPrice);
-
-            // Validate the entire form
-            function validateForm() {
-                const nameValue = nameInput.value.trim();
-                const surnameValue = surnameInput.value.trim();
-                const emailValue = emailInput.value.trim();
-                const phoneValue = phoneInput.value.trim();
-
-                if (
-                    nameValue.length >= 3 &&
-                    surnameValue.length >= 3 &&
-                    emailValue.length >= 6 &&
-                    emailValue.includes("@") &&
-                    /^\d{9}$/.test(phoneValue) &&
-                    validateDates()
-                ) {
-                    submitBtn.disabled = false;
-                } else {
-                    submitBtn.disabled = true;
-                }
-            }
-
-            // Prevent form submission if fields are invalid
-            const form = document.getElementById('rezervacni-formular');
-            form.addEventListener('submit', function (event) {
-                if (submitBtn.disabled) {
-                    alert("Formulář obsahuje chyby. Opravte je prosím před odesláním.");
-                    event.preventDefault();
-                }
-
-                if (noteInput.value.length > 50) {
-                    alert("Poznámka nesmí být delší než 50 znaků.");
-                    noteInput.style.border = "solid red 3px";
-                    event.preventDefault();
-                }
-            });
-
-            // Validate "poznámka" length in real-time
-            noteInput.addEventListener("input", function () {
-                if (noteInput.value.length > 50) {
-                    noteInput.style.border = "solid red 3px";
-                    submitBtn.disabled = true;
-                } else {
-                    noteInput.style.border = "solid black 1px";
-                    submitBtn.disabled = false;
-                }
-            });
-
-            // Prevent form submission if "poznámka" exceeds 50 characters
-            form.addEventListener('submit', function (event) {
-                if (noteInput.value.length > 50) {
-                    alert("Poznámka nesmí být delší než 50 znaků.");
-                    noteInput.style.border = "solid red 3px";
-                    event.preventDefault();
-                }
-            });
-        });
-    </script>
     <script src="menu.js"></script>
+    <script>
+    // --- Calendar logic wrapped in function and grid defined locally ---
+    // Data from PHP
+    const occupiedData = <?php echo json_encode($occupied_dates); ?>;
+    let selectedStart = null;
+    let selectedEnd = null;
+    let currentDate = new Date();
+
+    function renderCalendar(year, month) {
+        const calendarContainer = document.getElementById('booking-calendar');
+        calendarContainer.innerHTML = '';
+
+        // Calendar header with month navigation
+        const header = document.createElement('div');
+        header.className = 'calendar-header';
+
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '<';
+        prevBtn.onclick = function() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        };
+
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '>';
+        nextBtn.onclick = function() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        };
+
+        const monthLabel = document.createElement('span');
+        monthLabel.textContent = `${year} / ${String(month+1).padStart(2,'0')}`;
+        monthLabel.style.fontWeight = 'bold';
+        monthLabel.style.fontSize = '1.1em';
+
+        header.appendChild(prevBtn);
+        header.appendChild(monthLabel);
+        header.appendChild(nextBtn);
+        calendarContainer.appendChild(header);
+
+        const grid = document.createElement('div');
+        grid.className = 'calendar-grid';
+
+        // Názvy dnů
+        const daysShortCZ = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
+        daysShortCZ.forEach(d => {
+            const dayName = document.createElement('div');
+            dayName.className = 'calendar-day-name';
+            dayName.innerText = d;
+            grid.appendChild(dayName);
+        });
+
+        // První den v měsíci
+        const firstDay = new Date(year, month, 1).getDay(); // 0 = Ne, 1 = Po...
+        // Přepočet na Po=0, Ne=6
+        const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Prázdná políčka před začátkem
+        for(let i=0; i < startOffset; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day empty';
+            grid.appendChild(empty);
+        }
+
+        // Dny
+        for(let d=1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day';
+            dayCell.innerText = d;
+
+            // Kontrola obsazenosti
+            let isOccupied = false;
+            occupiedData.forEach(res => {
+                if (dateStr >= res.datum_prijezdu && dateStr < res.datum_odjezdu) {
+                    isOccupied = true;
+                }
+            });
+            // Kontrola minulosti
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (dateStr < todayStr) isOccupied = true;
+
+            if (isOccupied) {
+                dayCell.classList.add('occupied');
+            } else {
+                dayCell.onclick = () => handleDateClick(dateStr);
+            }
+
+            // Vizuální označení výběru
+            if (dateStr === selectedStart) dayCell.classList.add('selected');
+            if (dateStr === selectedEnd) dayCell.classList.add('selected');
+            if (selectedStart && selectedEnd && dateStr > selectedStart && dateStr < selectedEnd) {
+                dayCell.classList.add('in-range');
+            }
+
+            grid.appendChild(dayCell);
+        }
+        calendarContainer.appendChild(grid);
+    }
+
+    function handleDateClick(dateStr) {
+        // Reset pokud už máme vybráno obojí nebo klikneme před start
+        if ((selectedStart && selectedEnd) || (selectedStart && dateStr < selectedStart)) {
+            selectedStart = dateStr;
+            selectedEnd = null;
+        } else if (!selectedStart) {
+            selectedStart = dateStr;
+        } else {
+            // Kontrola, zda mezi start a end není obsazeno
+            let collision = false;
+            occupiedData.forEach(res => {
+                // Pokud rezervace zasahuje do vybraného intervalu
+                if ((res.datum_prijezdu >= selectedStart && res.datum_prijezdu < dateStr) || 
+                    (res.datum_prijezdu <= selectedStart && res.datum_odjezdu > selectedStart)) {
+                        collision = true;
+                }
+            });
+            if (collision) {
+                alert("Ve vybraném rozmezí je obsazený termín.");
+                selectedStart = dateStr;
+                selectedEnd = null;
+            } else {
+                selectedEnd = dateStr;
+            }
+        }
+        updateInputs();
+        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    }
+
+    function updateInputs() {
+        document.getElementById('datum_prijezdu').value = selectedStart || '';
+        document.getElementById('datum_odjezdu').value = selectedEnd || '';
+        if (selectedStart && selectedEnd) {
+            checkPrice(selectedStart, selectedEnd);
+            // Close calendar overlay when both dates are selected
+            const overlay = document.getElementById('calendar-overlay');
+            if (overlay) overlay.style.display = 'none';
+        } else {
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').innerText = "Vyberte termín";
+            document.getElementById('price-result').innerHTML = "";
+            document.getElementById('price-result').classList.remove('active');
+        }
+    }
+
+    function checkPrice(start, end) {
+        fetch(`get_price_api.php?start=${start}&end=${end}`)
+            .then(response => response.json())
+            .then(data => {
+                const btn = document.getElementById('submit-btn');
+                const priceBox = document.getElementById('price-result');
+                if (data.error) {
+                    priceBox.innerHTML = `<span style=\"color:red\">${data.error}</span>`;
+                    priceBox.classList.add('active');
+                    btn.disabled = true;
+                } else {
+                    priceBox.innerHTML = `Počet nocí: ${data.nights}<br>Celková cena: ${data.price} Kč`;
+                    priceBox.classList.add('active');
+                    btn.disabled = false;
+                    btn.innerText = "Závazně rezervovat";
+                }
+            });
+    }
+
+    // --- Initialization ---
+    document.addEventListener("DOMContentLoaded", function() {
+        const calendarWrapper = document.getElementById('booking-calendar');
+        const openRangeBtn = document.getElementById('open-range-calendar');
+        const rangeLabel = document.getElementById('range-label');
+        let calendarVisible = false;
+        const overlay = document.getElementById('calendar-overlay');
+
+        function updateRangeLabel() {
+            if (selectedStart && selectedEnd) {
+                rangeLabel.textContent = `Vybráno: od ${selectedStart} do ${selectedEnd}`;
+            } else if (selectedStart) {
+                rangeLabel.textContent = `Vyberte datum odjezdu po ${selectedStart}`;
+            } else {
+                rangeLabel.textContent = 'Nevybrán žádný termín.';
+            }
+        }
+
+        openRangeBtn.addEventListener('click', function() {
+            calendarVisible = !calendarVisible;
+            overlay.style.display = calendarVisible ? 'flex' : 'none';
+        });
+
+        // Close calendar when clicking outside the calendar-wrapper
+        overlay.addEventListener('mousedown', function(e) {
+            if (e.target === overlay) {
+                calendarVisible = false;
+                overlay.style.display = 'none';
+            }
+        });
+
+        // Update label after each selection
+        const origUpdateInputs = updateInputs;
+        updateInputs = function() {
+            origUpdateInputs();
+            updateRangeLabel();
+        };
+
+        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        updateRangeLabel();
+    });
+    </script>
 </body>
 </html>

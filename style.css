@@ -1,3 +1,226 @@
+/* Obsazený den */
+.calendar-day.occupied {
+  background-color: #ffcccc;
+  color: #a00000;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.calendar-btn-big {
+  font-size: 1.2em;
+  padding: 16px 32px;
+  min-width: 260px;
+  min-height: 48px;
+  margin: 0 auto;
+  display: block;
+  background: #f7f7f7;
+  border: 2px solid #bbb;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: background 0.2s, border 0.2s;
+}
+.calendar-btn-big:hover {
+  background: #e0eaff;
+  border-color: #1976d2;
+}
+.calendar-range-label {
+  font-size: 1em;
+  color: #1976d2;
+  margin-top: 8px;
+  text-align: center;
+}
+/* ********************************************************************************************* */
+/* ********************************** VELKÝ ADMIN KALENDÁŘ ************************************* */
+/* ********************************************************************************************* */
+
+/* Specifické styly jen pro kalendář v admin sekci */
+#admin-calendar {
+  position: relative;
+  max-width: 1000px;  
+  width: 80%;      
+  padding: 25px;
+  height: fit-content;
+}
+
+/* Zvětšení jednotlivých políček dnů */
+#admin-calendar .calendar-day {
+  height: 30px;       
+  font-size: 1.3rem;   
+  display: flex;       
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #eee; 
+}
+@media (max-width: 700px) {
+  #admin-calendar .calendar-day {
+    height: 60px;
+  }
+}
+
+/* Zvětšení mezer mezi políčky */
+#admin-calendar .calendar-grid {
+  gap: 10px; 
+}
+
+/* Zvětšení textu (Po, Út...) */
+#admin-calendar .calendar-day-name {
+  font-size: 1.2rem;
+  padding-bottom: 15px;
+  text-transform: uppercase;
+  color: #004b87;
+}
+
+/* Zvětšení horní lišty (Měsíc a tlačítka) */
+#admin-calendar .calendar-header {
+  margin-bottom: 30px;
+  font-size: 1.5rem;
+}
+
+#admin-calendar .calendar-header button {
+  padding: 8px 20px;
+  font-size: 1.2rem;
+}
+/* ********************************************************************************************* */
+/* ********************************** LIGHTBOX (GALERIE) *************************************** */
+/* ********************************************************************************************* */
+#lightbox {
+  display: none; /* Skryté ve výchozím stavu */
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.9); /* Tmavé pozadí */
+  justify-content: center;
+  align-items: center;
+}
+
+#lightbox-content {
+  margin: auto;
+  display: block;
+  max-width: 90%;
+  max-height: 90vh;
+  border: 3px solid white;
+  border-radius: 5px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  animation: zoomIn 0.3s;
+}
+
+#lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  transition: 0.3s;
+  cursor: pointer;
+  z-index: 2001;
+}
+
+#lightbox-close:hover,
+#lightbox-close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@keyframes zoomIn {
+  from {transform:scale(0)} 
+  to {transform:scale(1)}
+}
+
+/* ********************************************************************************************* */
+/* ********************************** VLASTNÍ KALENDÁŘ ***************************************** */
+/* ********************************************************************************************* */
+
+.calendar-overlay .calendar-wrapper {
+  pointer-events: auto;
+}
+
+.calendar-wrapper {
+  max-width: 400px;
+  width: 95vw;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.18);
+  color: #333;
+  z-index: 3100;
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 700px) {
+  .calendar-wrapper {
+    top: 30%;
+  }
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.calendar-header button {
+  background: #004b87;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.calendar-header button:hover {
+  background: #00325e;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  text-align: center;
+}
+
+.calendar-day-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.calendar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: 3000;
+  pointer-events: none;
+}
+
+/* Vybraný den (start/end) */
+.calendar-day.selected {
+  background-color: #004b87;
+  color: white;
+}
+
+/* Dny mezi startem a koncem */
+.calendar-day.in-range {
+  background-color: #cce5ff;
+}
+
+.calendar-day.empty {
+  background: transparent;
+  cursor: default;
+}
+
 /* ********************************************************************************************* */
 /* ********************************** HEADER CSS *********************************************** */
 /* ********************************************************************************************* */
@@ -1297,7 +1520,6 @@ button[type="submit"]:disabled {
 /* ********************************** PROFIL EDITACE CSS  *************************** */
 /* ********************************************************************************************* */
 
-<<<<<<< HEAD
 .profile-details #edit-view {
   width: 100%;
   display: none;
@@ -1305,8 +1527,6 @@ button[type="submit"]:disabled {
   align-items: center;
 }
 
-=======
->>>>>>> f739debe5b0143d03ef90b09defbba76f1e848c9
 #profile-edit-form {
   display: flex;
   flex-direction: column;
@@ -1336,6 +1556,7 @@ button[type="submit"]:disabled {
 
 .form-group-edit input[type="text"],
 .form-group-edit input[type="email"],
+.form-group-edit input[type="password"],
 .form-group-edit input[type="tel"],
 .form-group-edit input[type="date"] {
   padding: 10px;
@@ -1378,11 +1599,6 @@ button[type="submit"]:disabled {
 #view-edit-admin{
   justify-content:center;
   display:flex;
-}
-
-.admin-edit-container {
-    display: block;
-    width: 100%;
 }
 
 #admin-tr{
@@ -1497,6 +1713,7 @@ a.tab-button {
   max-height: 78vh;
   overflow-y: auto;
   margin-top: 20px;
+  height: fit-content;
 }
 
 .admin-title {

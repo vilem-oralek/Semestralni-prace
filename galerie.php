@@ -1,17 +1,9 @@
 <?php
 /**
  * @file galerie.php
- * Stránka galerie pro zobrazení obrázků z dané složky s podporou stránkování.
- * Tento soubor načítá obrázky ze složky, filtruje je podle přípon a zobrazuje
- * je na stránce s možností přecházení mezi stránkami.
+ * Stránka galerie s Lightboxem.
  */
 
-
-/**
- * Vrátí pole obrázků z dané složky (pouze jpg, jpeg, png).
- * @param string $dir Cesta ke složce s obrázky
- * @return array Pole názvů obrázků
- */
 function get_gallery_files($dir) {
     $files = [];
     if (is_dir($dir)) {
@@ -25,24 +17,11 @@ function get_gallery_files($dir) {
     return $files;
 }
 
-/**
- * Vrátí pole obrázků pro danou stránku.
- * @param array $files Všechna jména obrázků
- * @param int $page Aktuální stránka
- * @param int $per_page Počet obrázků na stránku
- * @return array Obrázky pro aktuální stránku
- */
 function get_files_on_page($files, $page, $per_page) {
     $offset = ($page - 1) * $per_page;
     return array_slice($files, $offset, $per_page);
 }
 
-/**
- * Vrátí počet stránek galerie.
- * @param int $total_files Celkový počet obrázků
- * @param int $per_page Počet obrázků na stránku
- * @return int Počet stránek
- */
 function get_total_pages($total_files, $per_page) {
     return (int)ceil($total_files / $per_page);
 }
@@ -63,7 +42,7 @@ $files_on_page = get_files_on_page($files, $page, $per_page);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galerie - Vilémův strejda</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
     <script>
       fetch("header.php")
         .then(response => response.text())
@@ -85,7 +64,7 @@ $files_on_page = get_files_on_page($files, $page, $per_page);
                 <?php if (count($files_on_page) > 0): ?>
                     <?php foreach ($files_on_page as $img): ?>
                         <div class="gallery-item">
-                            <a href="<?php echo $dir . $img; ?>" target="_blank">
+                            <a href="<?php echo $dir . $img; ?>" class="lightbox-trigger">
                                 <img src="thumbnail.php?img=<?php echo $img; ?>" alt="<?php echo $img; ?>" loading="lazy">
                             </a>
                         </div>
@@ -115,7 +94,41 @@ $files_on_page = get_files_on_page($files, $page, $per_page);
         </div>
     </section>
 
+    <div id="lightbox">
+        <span id="lightbox-close">&times;</span>
+        <img id="lightbox-content" src="" alt="Zvětšený obrázek">
+    </div>
+
     <?php include 'footer.html'; ?>
     <script src="menu.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-content');
+            const closeBtn = document.getElementById('lightbox-close');
+            const triggers = document.querySelectorAll('.lightbox-trigger');
+
+            triggers.forEach(trigger => {
+                trigger.addEventListener('click', function(e) {
+                    e.preventDefault(); // Zabrání otevření odkazu v novém okně
+                    lightbox.style.display = "flex";
+                    lightboxImg.src = this.href; // Načte velký obrázek z href odkazu
+                });
+            });
+
+            // Zavření křížkem
+            closeBtn.addEventListener('click', function() {
+                lightbox.style.display = "none";
+            });
+
+            // Zavření kliknutím mimo obrázek
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox) {
+                    lightbox.style.display = "none";
+                }
+            });
+        });
+    </script>
 </body>
 </html>

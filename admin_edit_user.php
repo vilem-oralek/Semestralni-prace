@@ -52,12 +52,16 @@ function handle_edit_user_post($conn) {
     $email = $_POST['email'];
     $telefon = $_POST['telefon'];
     $datum_narozeni = $_POST['datum_narozeni'];
-    
-    $stmt = $conn->prepare("UPDATE users SET jmeno=?, prijmeni=?, email=?, telefon=?, datum_narozeni=? WHERE id=?");
-    $stmt->bind_param("sssssi", $jmeno, $prijmeni, $email, $telefon, $datum_narozeni, $id);
-    
+    $new_password = isset($_POST['password']) ? $_POST['password'] : '';
+    if (!empty($new_password)) {
+      $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+      $stmt = $conn->prepare("UPDATE users SET jmeno=?, prijmeni=?, email=?, telefon=?, datum_narozeni=?, heslo=? WHERE id=?");
+      $stmt->bind_param("ssssssi", $jmeno, $prijmeni, $email, $telefon, $datum_narozeni, $hashed_password, $id);
+    } else {
+      $stmt = $conn->prepare("UPDATE users SET jmeno=?, prijmeni=?, email=?, telefon=?, datum_narozeni=? WHERE id=?");
+      $stmt->bind_param("sssssi", $jmeno, $prijmeni, $email, $telefon, $datum_narozeni, $id);
+    }
     if ($stmt->execute()) {
-      // Přesměrování zpět na tabulku uživatelů v adminu
       echo "<script>alert('Uživatel byl upraven.'); window.location.href='admin.php?tab=users';</script>";
       exit;
     } else {
@@ -133,6 +137,10 @@ require_user_exists($user_to_edit);
                       <input type="date" name="datum_narozeni" value="<?php echo htmlspecialchars($user_to_edit['datum_narozeni']); ?>" required>
                     </div>
                     
+                    <div class="form-group-edit">
+                      <label>Resetování hesla:</label>
+                      <input type="password" name="password" autocomplete="new-password" placeholder="Zadejte nové heslo">
+                    </div>
                     <div class="form-actions">
                         <button type="submit" class="save-profile-button">Uložit změny</button>
                         <a href="admin.php?tab=users" class="cancel-profile-button">Zrušit</a>
