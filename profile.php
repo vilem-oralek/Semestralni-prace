@@ -129,7 +129,10 @@ $profile_image_path = get_profile_image_path($user);
               <label for="datum_narozeni">Datum narození:</label>
               <input type="date" id="datum_narozeni" name="datum_narozeni" value="<?php echo htmlspecialchars($user['datum_narozeni'] ?? ''); ?>" required>
             </div>
-            
+            <div class="form-group-edit">
+              <label for="new_password">Nové heslo (změnit):</label>
+              <input type="password" id="new_password" name="new_password" minlength="8" maxlength="64" title="Minimálně 8 znaků" autocomplete="new-password">
+            </div>
             <button type="submit" class="save-profile-button">Uložit změny</button>
             <button type="button" class="cancel-profile-button" id="cancelEditButton">Zrušit</button>
           </form>

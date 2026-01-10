@@ -52,8 +52,19 @@ function process_update_profile() {
             echo '<script>alert("Musíte být starší 18 let.");window.location.href = "profile.php";</script>';
             exit;
         }
-        $stmt = $conn->prepare("UPDATE users SET jmeno = ?, prijmeni = ?, telefon = ?, email = ?, datum_narozeni = ? WHERE id = ?");
-        $stmt->bind_param("sssssi", $jmeno, $prijmeni, $telefon, $email, $datum_narozeni, $user_id);
+        $new_password = $_POST['new_password'] ?? '';
+        if (!empty($new_password)) {
+            if (strlen($new_password) < 8) {
+                echo '<script>alert("Nové heslo musí mít alespoň 8 znaků.");window.location.href = "profile.php";</script>';
+                exit;
+            }
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE users SET jmeno = ?, prijmeni = ?, telefon = ?, email = ?, datum_narozeni = ?, heslo = ? WHERE id = ?");
+            $stmt->bind_param("ssssssi", $jmeno, $prijmeni, $telefon, $email, $datum_narozeni, $hashed_password, $user_id);
+        } else {
+            $stmt = $conn->prepare("UPDATE users SET jmeno = ?, prijmeni = ?, telefon = ?, email = ?, datum_narozeni = ? WHERE id = ?");
+            $stmt->bind_param("sssssi", $jmeno, $prijmeni, $telefon, $email, $datum_narozeni, $user_id);
+        }
         if ($stmt->execute()) {
             $_SESSION['email'] = $email;
             echo '<script>alert("Profilové údaje byly úspěšně aktualizovány!");window.location.href = "profile.php";</script>';

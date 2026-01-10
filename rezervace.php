@@ -311,18 +311,22 @@ process_reservation($conn);
         const overlay = document.getElementById('calendar-overlay');
 
         function updateRangeLabel() {
+            function formatDateDMY(dateStr) {
+                if (!dateStr) return '';
+                const [y, m, d] = dateStr.split('-');
+                return `${d}.${m}.${y}`;
+            }
             if (selectedStart && selectedEnd) {
-                rangeLabel.textContent = `Vybráno: od ${selectedStart} do ${selectedEnd}`;
+                rangeLabel.textContent = `Vybráno: od ${formatDateDMY(selectedStart)} do ${formatDateDMY(selectedEnd)}`;
             } else if (selectedStart) {
-                rangeLabel.textContent = `Vyberte datum odjezdu po ${selectedStart}`;
+                rangeLabel.textContent = `Vyberte datum odjezdu po ${formatDateDMY(selectedStart)}`;
             } else {
                 rangeLabel.textContent = 'Nevybrán žádný termín.';
             }
         }
 
         openRangeBtn.addEventListener('click', function() {
-            calendarVisible = !calendarVisible;
-            overlay.style.display = calendarVisible ? 'flex' : 'none';
+            overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
         });
 
         // Close calendar when clicking outside the calendar-wrapper
